@@ -1,0 +1,53 @@
+---
+
+dependency:
+  name: galaxy
+  enabled: yes
+  options:
+    ignore-certs: yes
+    ignore-errors: yes
+    role-file: "${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml"
+    requirements-file: "${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml"
+driver:
+  name: docker
+lint: "${MOLECULE_SCENARIO_DIRECTORY}/linters.sh"
+platforms:
+  - name: "centos6-${INSTANCE_UUID:-1}"
+    image: centos:6
+    dockerfile: Dockerfile.centos6.j2
+    groups:
+      - molecule_hosts
+  - name: "centos7-${INSTANCE_UUID:-1}"
+    image: centos:7
+    groups:
+      - molecule_hosts
+  - name: "centos8-${INSTANCE_UUID:-1}"
+    image: centos:8
+    groups:
+      - molecule_hosts
+  - name: "fedora33-${INSTANCE_UUID:-1}"
+    image: fedora:33
+    groups:
+      - molecule_hosts
+      - molecule_hosts_fedora
+  - name: "fedora34-${INSTANCE_UUID:-1}"
+    image: fedora:34
+    groups:
+      - molecule_hosts
+      - molecule_hosts_fedora
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callback_enabled: profile_tasks
+      action_plugins: $PWD/action_plugins
+  inventory:
+    hosts:
+      molecule_hosts:
+        vars:
+          proxy_client_http_proxy: http://acme.local
+          proxy_client_https_proxy: https://acme.local
+          proxy_client_no_proxy:
+            - https://acme2.local
+verifier:
+  name: ansible

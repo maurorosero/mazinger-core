@@ -1,0 +1,13 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: ansible-role-gitlab
+  vars:
+    host_fqdn: "{{ ansible_host }}"
+    gitlab_project_group_create: true
+    gitlab_project_create: true
+    gitlab_master_user_create: true
+    gitlab_webhooks_create: true
+    gitlab_labels_create: true
+    gitlab_allow_local_requests: true

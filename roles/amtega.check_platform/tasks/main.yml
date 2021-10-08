@@ -1,0 +1,8 @@
+---
+# Role tasks
+
+- name: Check platform
+  _check_platform:
+  when: check_platform_enabled | bool
+  tags:
+    - role::check_platform

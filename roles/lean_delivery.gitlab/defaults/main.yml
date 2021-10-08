@@ -1,0 +1,235 @@
+---
+host_fqdn: "{{ ansible_fqdn }}"
+gitlab_install: true
+# GitLab default user / override it on your playbook
+gitlab_admin_email: superdamin@example.com
+gitlab_admin_name: Administrator
+gitlab_admin_username: superdamin
+gitlab_admin_password: Qwe54321
+gitlab_admin_token: BF1U1swzaouACMj2S9aQ
+
+# General config.
+gitlab_external_url: "https://{{ host_fqdn }}"
+gitlab_data_dir: "/var/opt/gitlab/git-data"
+gitlab_edition: "ce"
+gitlab_version: "latest"
+gitlab_api_version: "v4"
+
+# SSL Configuration.
+gitlab_ssl_redirect_http_to_https: true
+gitlab_ssl_certificate_path: "/etc/gitlab/ssl/gitlab.crt"
+gitlab_ssl_certificate_key_path: "/etc/gitlab/ssl/gitlab.key"
+gitlab_ssl_certificate_csr: "/etc/gitlab/ssl/gitlab.csr"
+gitlab_ssl_create_self_signed_cert: true
+gitlab_ssl_self_signed_cert_subj: "/C=BY/ST=Minsk/L=org/O=IT/OU=IT/CN={{ host_fqdn }}"
+
+# LDAP Configuration
+gitlab_ldap_enabled: false
+gitlab_ldap_host: "example.com"
+gitlab_ldap_port: "389"
+gitlab_ldap_uid: "sAMAccountName"
+gitlab_ldap_method: "plain"
+gitlab_ldap_bind_dn: "CN=Username,CN=Users,DC=example,DC=com"
+gitlab_ldap_password: "password"
+gitlab_ldap_base: "DC=example,DC=com"
+
+# Probably best to leave this as the default, unless doing testing.
+gitlab_restart_handler_failed_when: 'gitlab_restart.rc != 0'
+
+# Optional settings.
+gitlab_config_time_zone: "UTC"
+gitlab_config_backup_keep_time: "604800"
+
+# Email configuration.
+gitlab_email_enabled: false
+gitlab_email_from: "gitlab@example.com"
+gitlab_email_display_name: "Gitlab"
+gitlab_email_reply_to: "gitlab@example.com"
+
+# MySQL DB info !!!(only for gitlab-ee)!!!
+gitlab_mysql_enabled: false
+gitlab_mysql_db_adapter: "mysql2"
+gitlab_mysql_db_encoding: "utf8"
+gitlab_mysql_db_host: "localhost"
+gitlab_mysql_db_port: "3306"
+gitlab_mysql_db_username: "USERNAME"
+gitlab_mysql_db_password: "PASSWORD"
+
+
+# Default configuration for SMTP section
+# (if enabled, look at gitlab_smtp_enable key),
+# default settings for the most popular SMTP servers
+# listed in https://docs.gitlab.com/omnibus/settings/smtp.html
+# at least one SMTP set must be enabled to avoid failure
+# (doesn't matter: gitlab_smtp_enable key in true or false state)
+
+# Default SMTP configuration for GMAIL
+# Don't forget to change my.email@gmail.com
+# to your email address and my-gmail-password to your own password.
+# If you encounter authentication errors, ensure you have allowed
+# less secure apps to access the account or try turning
+# on 2-step validation and using an application password.
+gitlab_smtp_enabled: false
+gitlab_smtp_address: "smtp.gmail.com"
+gitlab_smtp_port: "587"
+gitlab_smtp_user_name: "my.email@gmail.com"
+gitlab_smtp_password: "my-gmail-password"
+gitlab_smtp_domain: "smtp.gmail.com"
+gitlab_smtp_authentication: "login"
+gitlab_smtp_enable_starttls_auto: "true"
+gitlab_smtp_tls: "false"
+# Can be: "none", "peer", "client_once", "fail_if_no_peer_cert",
+# see http://api.rubyonrails.org/classes/ActionMailer/Base.html
+gitlab_smtp_openssl_verify_mode: "peer"
+
+gitlab_validate_certs: false
+# gitlab project
+gitlab_master_user_create: false
+gitlab_master_name: "integrator user"
+gitlab_master_username: "integrator"
+gitlab_master_password: "Admin!23"
+gitlab_master_email: "integrator@example.com"
+gitlab_master_token_name: "Created API token"
+gitlab_master_token: "Token!234"
+
+# gitlab project
+gitlab_project_create: false
+gitlab_project_name: test_project
+gitlab_project_id: 1
+
+# gitlab group
+gitlab_project_group_create: false
+gitlab_project_group: test_group
+gitlab_project_group_id: 1
+
+# gitlab webhooks
+gitlab_allow_local_requests: false
+gitlab_webhooks_create: false
+gitlab_webhooks_list:
+  webhook1:
+    hook_url: "http://server.example.com:8080/project/ci_main_branch_test"
+    push_events: "true"
+    push_events_branch_filter: ""
+    issues_events: "false"
+    confidential_issues_events: "false"
+    merge_requests_events: "false"
+    tag_push_events: "false"
+    note_events: "false"
+    job_events: "false"
+    pipeline_events: "false"
+    wiki_page_events: "false"
+    enable_ssl_verification: "false"
+    token: ""
+  webhook2:
+    hook_url: "http://server.example.com:8080/project/ci_mr_test"
+    push_events: "false"
+    push_events_branch_filter: ""
+    issues_events: "false"
+    confidential_issues_events: "false"
+    merge_requests_events: "true"
+    tag_push_events: "false"
+    note_events: "true"
+    job_events: "false"
+    pipeline_events: "false"
+    wiki_page_events: "false"
+    enable_ssl_verification: "false"
+    token: ""
+  webhook3:
+    hook_url: "http://server.example.com:8080/project/sub_add_jira_comment"
+    push_events: "false"
+    push_events_branch_filter: ""
+    issues_events: "false"
+    confidential_issues_events: "false"
+    merge_requests_events: "true"
+    tag_push_events: "false"
+    note_events: "false"
+    job_events: "false"
+    pipeline_events: "false"
+    wiki_page_events: "false"
+    enable_ssl_verification: "false"
+    token: ""
+
+# gitlab labels
+gitlab_labels_create: false
+gitlab_labels_list:
+  label1:
+    name: 'Skip Deploy'
+    color: '#34495E'
+    description: ''
+  label2:
+    name: 'Skip Incremental update'
+    color: '#7F8C8D'
+    description: ''
+  label3:
+    name: 'DeployInit'
+    color: '#5843AD'
+    description: ''
+  label4:
+    name: 'FV QA REVIEW'
+    color: '#428BCA'
+    description: ''
+  label5:
+    name: 'Approved'
+    color: '#69D100'
+    description: ''
+  label6:
+    name: 'AutoMerge'
+    color: '#D1D100'
+    description: ''
+  label7:
+    name: 'Enhancement'
+    color: '#5843AD'
+    description: ''
+  label8:
+    name: 'KEEP FV RUNNING'
+    color: '#A8D695'
+    description: ''
+  label9:
+    name: 'Need Updates'
+    color: '#F0AD4E'
+    description: ''
+  label10:
+    name: 'Pipelines syntax check'
+    color: '#AD8D43'
+    description: ''
+  label11:
+    name: 'DeployUpdate'
+    color: '#428BCA'
+    description: ''
+  label12:
+    name: 'Skip CodeQuality'
+    color: '#7F8C8D'
+    description: ''
+  label13:
+    name: 'Skip Initialization'
+    color: '#7F8C8D'
+    description: ''
+  label14:
+    name: 'Skip Integrational'
+    color: '#7F8C8D'
+    description: ''
+  label15:
+    name: 'Skip Junit'
+    color: '#7F8C8D'
+    description: ''
+  label16:
+    name: 'Skip Spock'
+    color: '#7F8C8D'
+    description: ''
+  label17:
+    name: 'Skip Sonar'
+    color: '#7F8C8D'
+    description: ''
+  label18:
+    name: 'Skip Webtests'
+    color: '#7F8C8D'
+    description: ''
+  label19:
+    name: 'Skip All'
+    color: '#CC0033'
+    description: ''
+
+# Gitlab nginx config. Uncomment and set variables
+gitlab_nginx: []
+#  listen_port:
+#  listen_https:

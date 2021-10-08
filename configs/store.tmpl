@@ -1,0 +1,40 @@
+---
+# ../../inventory/host_vars/store.yml
+
+# The hostname to set. By default whatever the inventory is set to.
+  str_root_user:        'root'
+  ansible_user: root
+  server_hostname: "nas01"
+  hostname_reboot: no
+  store_home: '/srv/dev-disk-by-label-user1/users'
+    
+# Special python interpreter, because 32bits OS
+# ansible_python_interpreter: /usr/bin/python2
+  
+# Security group for this server
+  group_list_host:
+    - name:   '{{ secur_group }}'
+      gid:    '{{ secur_gid }}'
+      system: yes
+    - name:   '{{ git_group }}'
+      gid:    '{{ git_gid }}'
+      system: yes
+      
+# User for security issues
+  user_list_host:
+    - name:   '{{ secur_userid }}'
+      uid:    '{{ secur_uid }}'    
+      group:  '{{ secur_group }}'
+      groups: ['ssh']
+      password: '*'
+      system: yes
+    - name:   '{{ git_userid }}'
+      uid:    '{{ git_uid }}'
+      group:  '{{ git_group }}'
+      groups: ['ssh']
+      password: '*'
+      system: yes
+              
+# Packages to install
+  git_packages:
+    - git

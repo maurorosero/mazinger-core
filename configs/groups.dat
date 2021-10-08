@@ -1,0 +1,6 @@
+teamvar,teamcode,teamname,plataform,active
+"secure","Seguridad","Seguridad y Credenciales",1,1
+"support","Asistencia","Soporte Técnico y Funcional",1,1
+"devops","Infraestructura","Desarrollo e Infraestructura",1,1
+"sales","Comercial","Ventas y Mercadeo",0,1
+"owner","Propietario","Administración",0,1

@@ -1,0 +1,8 @@
+---
+
+- name: Include version-specific variables for RedHat
+  include_vars: "RedHat-{{ ansible_distribution_version.split('.')[0] }}.yml"
+  when: ansible_os_family == "RedHat"
+
+- include: redhat-epel.yml
+  when: ansible_os_family == "RedHat"

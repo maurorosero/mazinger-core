@@ -1,0 +1,33 @@
+---
+# Role install tasks
+
+- block:
+    - name: Get installed python-gitlab module info
+      command: >-
+        {{ ansible_facts.packages_python_bin_dir
+           | default("") }}pip show -f python-gitlab
+      register: gitlab_cli_get_info_result
+      changed_when: no
+      failed_when: no
+
+    - name: Fix insecure request warning in gitlab cli
+      blockinfile:
+        path: "{{ base_path }}/{{ relative_binary_path }}"
+        insertbefore: "__name__ == '__main__'"
+        block: |
+          import urllib3
+          urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+      vars:
+        base_path: >-
+          {{ gitlab_cli_get_info_result.stdout_lines
+             | select("search", "^Location: .*$")
+             | first
+             | regex_replace("^Location: (.*)$", "\1") }}
+        relative_binary_path: >-
+          {{ gitlab_cli_get_info_result.stdout_lines
+             | select("search", ".*bin/gitlab$")
+             | first
+             | trim }}
+  tags:
+    - role::gitlab_cli
+    - role::gitlab_cli::install

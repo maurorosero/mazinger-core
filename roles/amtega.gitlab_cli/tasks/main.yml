@@ -1,0 +1,12 @@
+---
+# Role tasks
+
+- block:
+    - include_tasks: install.yml
+      when: gitlab_cli_install | bool
+
+    - include_tasks: configure.yml
+  tags:
+    - role::gitlab_cli
+    - role::gitlab_cli::install
+    - role::gitlab_cli::configure

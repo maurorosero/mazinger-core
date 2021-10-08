@@ -1,0 +1,45 @@
+---
+# Role variables
+
+proxy_client_http_config: >-
+  {{ (proxy_client_http_proxy | default("", boolean=true) | length > 0)
+     | ternary({ "http_proxy": proxy_client_http_proxy,
+                 "HTTP_PROXY": proxy_client_http_proxy }, {}) }}
+
+proxy_client_https_config: >-
+  {{ (proxy_client_https_proxy | default("", boolean=true) | length > 0)
+     | ternary({ "https_proxy": proxy_client_https_proxy,
+                 "HTTPS_PROXY": proxy_client_https_proxy },
+               {}) }}
+
+proxy_client_http_no_proxy: >-
+  {{ (proxy_client_no_proxy | default("", boolean=true) | length > 0)
+     | ternary({ "no_proxy": proxy_client_no_proxy
+                             | default("", boolean=true)
+                             | join(","),
+                 "NO_PROXY": proxy_client_no_proxy
+                             | default("", boolean=true)
+                             | join(",")}, {}) }}
+
+proxy_client_environment_value: >-
+  {{ proxy_client_http_config
+     | combine((proxy_client_support_el_6 | bool
+                or (ansible_facts.distribution | default("")
+                    | lower in ['centos', 'fedora', 'redhat']
+                    and ansible_facts.distribution_version | default("")
+                        is version("7", ">=")))
+               | ternary(proxy_client_https_config, {}))
+     | combine(proxy_client_http_no_proxy) }}
+
+proxy_client_permanent_value: >-
+  {{ (proxy_client_permanent_hostvars_priority | bool)
+     | ternary(hostvars[inventory_hostname].proxy_client_permanent
+               | default(proxy_client_permanent),
+               proxy_client_permanent) }}
+
+proxy_client_process_required: >-
+  {{ (ansible_facts.distribution is undefined
+      and proxy_client_support_el_6 | bool)
+     or proxy_client_permanent_value != _proxy_client_permanent | default(None)
+     or proxy_client_environment_value
+        != proxy_client_environment | default(None) }}

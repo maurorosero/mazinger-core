@@ -1,0 +1,67 @@
+---
+# Ansible Roles Requirements
+# 2021-04-20 17:10
+
+- src: https://github.com/ansible-community/ansible-vault.git
+  name: ansible-community.ansible-vault
+  scm: git
+  version: master
+
+# For basic server managment
+- src: geerlingguy.ntp
+- src: geerlingguy.pip 
+- src: grog.authorized-key
+- src: grog.group
+- src: grog.management-user
+- src: grog.package
+- src: grog.poweroff
+- src: grog.reboot
+- src: grog.sudo
+- src: grog.user
+- src: juju4.gpgkey_generate
+- src: oefenweb.locales
+- src: robertdebock.alternatives
+- src: robertdebock.anaconda
+- src: robertdebock.bootstrap
+- src: robertdebock.buildtools
+- src: robertdebock.common
+- src: robertdebock.core_dependencies
+- src: robertdebock.hostname
+- src: robertdebock.locale
+- src: robertdebock.logrotate
+- src: robertdebock.logwatch
+- src: robertdebock.python_pip
+- src: robertdebock.update_package_cache
+- src: robertdebock.users
+- src: tschifftner.exim4_sendonly
+
+# Devops Tools
+- src: amtega.gitlab_cli
+- src: geerlingguy.docker
+- src: geerlingguy.git
+- src: geerlingguy.packer
+- src: geerlingguy.packer-debian
+- src: geerlingguy.packer_rhel
+- src: lean_delivery.gitlab
+- src: lean_delivery.gitlab_runner
+- src: robertdebock.ansible
+- src: robertdebock.ansible_lint
+- src: robertdebock.azure_cli
+- src: robertdebock.docker
+- src: robertdebock.docker_ce
+- src: robertdebock.hashicorp
+- src: robertdebock.jenkins
+- src: robertdebock.packer
+- src: robertdebock.terraform
+- src: robertdebock.travis
+- src: robertdebock.vagrant
+
+# Programming Languages
+- src: geerlingguy.php
+- src: robertdebock.go
+- src: robertdebock.java
+- src: robertdebock.php
+- src: robertdebock.php_fpm
+
+
+

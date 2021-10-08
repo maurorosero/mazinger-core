@@ -1,0 +1,49 @@
+---
+# Role default lower priority variables
+
+# Dict with the hostvars query parameters. The dict must have the following
+# attributes:
+#
+# scope: <scope>                # Indicate if variables must be gathered only
+#                               # from the `current` host or from `all` hosts
+#                               # available in the ansible `hostvars` variable.
+#                               # Default is `current`
+#
+# pattern: <regex>              # The regex pattern that hostvars variables
+#                               # names must have to be selected
+#
+# exclude_pattern: <regex>      # The regex pattern that hostvars variables
+#                               # names must not have to be selected
+#
+# host_pattern: <regex>         # The regex pattern that hosts must have to be
+#                               # selected
+#
+# host_exclude_pattern: <regex> # The regex pattern that hosts must have to be
+#                               # selected
+#
+# attributes: <attributes>      # The list of strings with the attributes names
+#                               # filtered hostvars must have to be selected
+#
+# fact_name: <name>             # The name of the fact to put in the selected
+#                               # hostvars variables
+#
+# output_type: <type>           # Type of the output fact. Can be `list` or
+#                               # `dict`. If list the fact will return a list
+#                               # with the contents of the matched variables.
+#                               # If dict will return a dictionary mapping the
+#                               # variable name and its contents.
+#                               # Default is `list`
+#
+# Sample:
+#
+# select_hostvars_query:
+#   scope: current
+#   pattern: "my_vars_.*"
+#   exclude_pattern: "my_vars_to_exclude.*"
+#   host_pattern: "myserver.*"
+#   host_exclude_pattern: "mybadhost.*"
+#   attributes: [ "myattr1", "myattr2" ]
+#   fact_name: my_hostvars
+#   output_type: list
+
+# select_hostvars_query:

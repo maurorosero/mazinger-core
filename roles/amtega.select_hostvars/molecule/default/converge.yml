@@ -1,0 +1,62 @@
+---
+
+- name: Converge
+  hosts: molecule_hosts
+  gather_facts: yes
+  roles:
+    - role: amtega.select_hostvars
+      vars:
+        select_hostvars_query:
+          pattern: my_testing_var
+          host_pattern: .*
+          host_exclude_pattern: mybadhost.*
+          attributes:
+            - name
+          fact_name: devices_facts_list
+          output_type: list
+
+    - role: amtega.select_hostvars
+      vars:
+        select_hostvars_query:
+          pattern: my_testing_var
+          host_pattern: .*
+          host_exclude_pattern: mybadhost.*
+          attributes:
+            - name
+          fact_name: devices_facts_dict
+          output_type: dict
+
+    - role: amtega.select_hostvars
+      vars:
+        select_hostvars_query:
+          scope: all
+          pattern: my_testing_var
+          host_pattern: .*
+          host_exclude_pattern: mybadhost.*
+          attributes:
+            - name
+          fact_name: devices_facts_dict_all
+          output_type: dict
+
+    - role: amtega.select_hostvars
+      vars:
+        select_hostvars_query:
+          pattern: .*
+          exclude_pattern: ansible_default_ipv6
+          host_pattern: .*
+          host_exclude_pattern: mybadhost.*
+          fact_name: defaults_facts_dict
+          output_type: dict
+
+  tasks:
+    - name: Check that returned fact is correct
+      assert:
+        that:
+          - devices_facts_list is defined
+          - devices_facts_dict is defined
+          - devices_facts_dict_all is defined
+          - devices_facts_list.0.name is defined
+          - devices_facts_dict.my_testing_var.name is defined
+          - devices_facts_dict_all.my_testing_var.name is defined
+          - defaults_facts_dict.ansible_default_ipv4 is defined
+          - defaults_facts_dict.ansible_default_ipv6 is not defined

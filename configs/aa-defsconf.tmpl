@@ -1,0 +1,35 @@
+---
+#inventory/group_vars/all/aa-defsconf.yml
+# Devops Default Base Data Configuration
+# Generated {{ ansible_today }}
+
+# Company Platform Info
+devops_company:             {{ input_companyname }}
+devops_domain:              {{ input_companydomain }}
+devops_customer:            {{ input_companycode }}
+sysop_customer:             {{ input_companycode }}
+owner_name:                 {{ input_owner_name }}
+owner_mail:                 {{ input_owner_mail }}
+
+#Devops Base Info
+devops_mail_group:          {{ input_devops_mail }}
+devops_timezone:            {{ input_timezone }}
+
+# Devops Default Path Configuration
+data_servers_path:          '{{ input_servers_path }}'
+data_station_path:          '{{ input_install_path }}'
+data_homeuser:              '/home'
+
+# Miscelaneous Default Configurations
+ansible_python_interpreter: {{ input_python_server }}
+
+# Mazinger KVaaS Controller Server
+kvaas_server:               {{ input_etcd0_server }}
+kvaas_kvport:               '{{ input_etcd0_kvport | int }}'
+
+# Devops Non-SQL Database
+db_server:                  {{ input_db_server }}
+dbase_name:                 {{ mazinger_dbname }}
+
+# Devops Cifs Backup Storage Server
+cifs_store_server:          {{ input_store_server }}

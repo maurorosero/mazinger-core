@@ -1,0 +1,40 @@
+---
+# Role setup tasks
+
+- block:
+    - name: Setup base environment variables
+      include_role:
+        name: amtega.environment
+      vars:
+        environment_config:
+          http_proxy: "{{ proxy_client_http_proxy }}"
+          HTTP_PROXY: "{{ proxy_client_http_proxy }}"
+          no_proxy: >-
+            {{ proxy_client_no_proxy
+               | default("", boolean=true)
+               | join(',') }}
+          NO_PROXY: >-
+            {{ proxy_client_no_proxy
+               | default("", boolean=true)
+               | join(',') }}
+
+    - name: Setup extra environment variables
+      include_role:
+        name: amtega.environment
+      vars:
+        environment_config:
+          https_proxy: "{{ proxy_client_https_proxy }}"
+          HTTPS_PROXY: "{{ proxy_client_https_proxy }}"
+      when: >-
+          not proxy_client_support_el_6 | bool
+          or (ansible_facts.distribution | default("") | lower
+              in ["centos", "fedora", "redhat"]
+              and ansible_facts.distribution_version
+                  | default("") is version("7", ">="))
+  when:
+    - proxy_client_permanent_value | bool
+    - >-
+      proxy_client_http_proxy | length > 0
+      or proxy_client_https_proxy | length > 0
+  tags:
+    - role::proxy_client

@@ -1,0 +1,217 @@
+---
+# Playbook:     setup_developer.yml
+# Description:  Add/Update Mazinger Platform Developer User
+# Author:       Mauro Rosero P,
+# Email:        mrosero@libretechnology.com (mauro.rosero@gmail.com)
+# Organization: OPEN TECHNOLOGY SOLUTIONS, S. A.
+
+# Date: 10-02-2020
+# Note: Run from some computers with ansible installed.
+# Require update ansible roles from roles/requirements.txt
+# '''' if you run in awx controller, you need set env var DATAPATH on Settings / Works with the path of data.
+# '''' if you run in awx controller, for scheduled automatic provisioned sysop procees, require define go_rebuild
+# '''' with value equal to 'yes' - rebuild setup to manage
+
+- name: --| {{ playbook_program }} - {{ playbook_description }}
+  hosts: [controller]
+  become: no
+  gather_facts: yes
+
+  vars:
+    playbook_program:       'setup_developer'
+    playbook_description:   'Add/Update Platform Developer User'
+    managed_sufix:          'ansible'
+    managed_file:           '{{ playbook_status }}/{{ managed_sufix }}'
+    sysop_action:           'MZCORE USER'
+    installed_message:      'Configure Developer User'
+    notify_subject:         '[{{ sysop_action }} ({{ ansible_hostname | upper }}] {{ installed_message }}'
+    notify_path:            "../templates/{{ mazinger_lang }}"
+    ansible_month:          "{{ lookup('pipe','date +%Y%m') }}"
+
+    data_path:              "{{ lookup('env','DATAPATH')| default(data_station_path, true) }}"
+    inventory_all_path:     "../inventory/group_vars/all"
+    inventory_path:         "../inventory/"
+    template_path:          "../configs"
+    defaults_path:          '../defaults'
+    developer_config:       "developers.ini"
+    developer_template:     "developers.tmpl"
+    devops_binpath:         "../bin"
+    file_date:              "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+    gitconf_file:           '~/.gitconfig'
+
+  vars_prompt:
+
+    - name: input_developer_user
+      prompt: Get developer user id
+      default: "{{ lookup('ini', 'def_developer_user section=developer file=../defaults/developers.ini') | default('None') }}"
+      private: no
+
+    - name: input_developer_fname
+      prompt: Get developer first name
+      default: "{{ lookup('ini', 'def_developer_fname section=developer file=../defaults/developers.ini') | default('None') }}"
+      private: no
+
+    - name: input_developer_lname
+      prompt: Get developer last name
+      default: "{{ lookup('ini', 'def_developer_lname section=developer file=../defaults/developers.ini') | default('None') }}"
+      private: no
+
+    - name: input_developer_email
+      prompt: Get developer email
+      default: "{{ lookup('ini', 'def_developer_email section=developer file=../defaults/developers.ini') | default('None') }}"
+      private: no
+
+  tasks:
+
+  - name: ---| {{ playbook_description }}
+    block:
+
+    - name: Waiting for Awx Server connection 
+      wait_for_connection:
+        timeout: '{{ sysop_timeout_connection | int }}'
+
+    - name: ---|| {{ installed_message }}
+      block:
+
+      - name: Build Default Input Developer File {{ developer_config }}
+        template:
+          src: "{{ template_path }}/{{ developer_template }}"
+          dest: "{{ defaults_path }}/{{ developer_config }}"
+          mode: u=rw,g=r,o=r
+        delegate_to: localhost
+
+      - name: Test if k3s installed
+        raw: 'kubectl version --short'
+        register: k3s_result
+        become_user: root
+
+      - name: Check if awx is running
+        raw: "kubectl get pods -l 'app.kubernetes.io/managed-by=awx-operator' -n awx | grep 4/4 | tr -s ' ' | cut -d ' ' -f 3"
+        retries: 5
+        delay: 3
+        register: awx_running
+        until: awx_running.rc == 0 and awx_running.stdout_lines is defined and  awx_running.stdout_lines[0] == "Running"
+        become_user: root
+
+      - name: Get awx web port
+        raw: "kubectl get service -n awx | grep awx-service | tr -s ' ' | cut -d ' ' -f 5 | cut -d ':' -f 2 | cut -d '/' -f 1"
+        register: awx_webport
+        when: awx_running.stdout_lines is defined and  awx_running.stdout_lines[0] == "Running"
+        become_user: root
+      
+      - name: Get awx-admin password
+        raw: 'kubectl -n awx get secret awx-admin-password -o jsonpath="{.data.password}" | base64 --decode'
+        register: awx_adminpass
+        when: awx_running.stdout_lines is defined and  awx_running.stdout_lines[0] == "Running"
+        become_user: root
+
+        ### AWX USER CONFIGURATION ###
+      
+      - name: Set new developer password
+        set_fact:
+          awx_user_pass: "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=32') }}"
+        when: awx_adminpass is defined and awx_adminpass.rc == 0
+
+      - name: Add Developer User on AWX
+        awx.awx.user:
+          controller_username: '{{ awx_user }}'
+          controller_password: '{{ awx_adminpass.stdout_lines[0] }}'
+          controller_host: 'http://{{ ansible_host }}:{{ awx_webport.stdout_lines[0] }}'
+          username: '{{ input_developer_user }}'
+          password: '{{ awx_user_pass }}'
+          email: '{{ input_developer_email }}'
+          first_name: '{{ input_developer_fname }}'
+          last_name: '{{ input_developer_lname }}'
+          state: present
+        when: awx_adminpass is defined and awx_adminpass.rc == 0 and not change_me is defined
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+      - name: Change Developer User on AWX
+        awx.awx.user:
+          controller_username: '{{ awx_user }}'
+          controller_password: '{{ awx_adminpass.stdout_lines[0] }}'
+          controller_host: 'http://{{ ansible_host }}:{{ awx_webport.stdout_lines[0] }}'
+          username: '{{ input_developer_user }}'
+          email: '{{ input_developer_email }}'
+          first_name: '{{ input_developer_fname }}'
+          last_name: '{{ input_developer_lname }}'
+          state: present
+        when: awx_adminpass is defined and awx_adminpass.rc == 0 and (change_me is defined and change_me)
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+        ### GIT USER CONFIGURATION ###
+
+      - name: Check if git_config configured
+        stat:
+          path: "{{ gitconf_file }}"
+        register: gitconf_status
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+      - name: Set developer full name for logged user
+        git_config:
+          name: user.name
+          scope: global
+          value: '{{ input_developer_fname }} {{ input_developer_lname }}'
+        when: not gitconf_status.stat.exists or (change_me is defined and change_me)
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+      - name: Set developer email for logged user
+        git_config:
+          name: user.email
+          scope: global
+          value: '{{ input_developer_email }}'
+        when: not gitconf_status.stat.exists or (change_me is defined and change_me)
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+        ### GENERATE SSH KEY ###
+
+      - name: Check if local {{ sysop_ssh_path }} directory exists
+        stat:
+          path: "{{ sysop_ssh_path }}"
+        register: ssh_user_home
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+      - name: Create {{ sysop_ssh_path }} if dont exists
+        file:
+          path: "{{ sysop_ssh_path }}"
+          state: directory
+          mode: '0700'
+        when: not ssh_user_home.stat.exists
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+      - name: Check if developer ssh private key file exists
+        stat:
+          path: "{{ sysop_ssh_prvpath }}"
+        register: st_devs_prv_file
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+      - name: Check if developer ssh public key file exists
+        stat:
+          path: "{{ sysop_ssh_pubpath }}"
+        register: st_devs_pub_file
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+      - name: Create new developer ssh key if not exists
+        openssh_keypair:
+          path: "{{ sysop_ssh_prvpath }}"
+          comment: '{{ input_developer_email }}'
+          size: '{{ ssh_key_size }}'
+          type: '{{ ssh_key_type }}'
+          force: '{{ ssh_forced }}'
+          owner: '{{ input_developer_user }}'
+        register: st_devs_new
+        when: not st_devs_prv_file.stat.exists or not st_devs_pub_file.stat.exists
+        become_user: '{{ input_developer_user }}'
+        delegate_to: localhost
+
+
+

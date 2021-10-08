@@ -1,0 +1,9 @@
+---
+roles:
+  - name: robertdebock.bootstrap
+  - name: robertdebock.epel
+  - name: robertdebock.java
+  - name: robertdebock.locale
+  - name: robertdebock.core_dependencies
+collections:
+  - name: community.general

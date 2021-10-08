@@ -1,0 +1,9 @@
+Estimado,
+Usuario
+
+Esto es una prueba de notificación de nuestra solución de infraestructura {{ apps_desc }} Vers. {{ apps_revs }} Updt. {{ apps_updt }} ({{ apps_name }}). Este correo le ha sido enviado porque usted se encuentra instalando o actualizando una estación de desarrollador y estamos verificando el correcto funcionamiento del servidor de correo local.
+
+Atentamente,
+
+{{ developer_name }}
+{{ developer_cname }}

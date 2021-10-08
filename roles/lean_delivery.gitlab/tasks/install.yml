@@ -1,0 +1,151 @@
+---
+- name: "Choose platform based task"
+  include_tasks: "{{ platform }}"
+  with_first_found:
+    - "system/{{ ansible_os_family }}.yml"
+    - "system/not-supported.yml"
+  loop_control:
+    loop_var: platform
+
+- name: "Check if GitLab is already installed."
+  stat:
+    path: /usr/bin/gitlab-ctl
+  register: gitlab_file
+
+- name: "Check if GitLab is already bootstrapped."
+  stat:
+    path: /var/opt/gitlab/bootstrapped
+  register: gitlab_bootstrapped
+
+- name: "Install pyapi-gitlab (for external management from Ansible)"
+  pip:
+    name:
+      - pyapi-gitlab
+      - python-gitlab
+      - pyOpenSSL
+  register: installed_packages
+  until: installed_packages is success
+  become: true
+
+- name: "Download GitLab repository installation script."
+  get_url:
+    url: "{{ gitlab_repository_installation_script_url }}"
+    dest: /tmp/gitlab_install_repository.sh
+  when: not gitlab_file.stat.exists
+
+- name: "Install GitLab repository"
+  command: bash /tmp/gitlab_install_repository.sh
+  args:
+    creates: /usr/bin/gitlab-ctl
+  become: true
+  when: not gitlab_file.stat.exists
+
+- name: "Verifying GitLab version is set"
+  debug:
+    msg: "gitlab-{{ gitlab_edition }}\
+    {% if gitlab_version != 'latest' %}-{{ gitlab_version }}{% endif %}"
+  when: not gitlab_file.stat.exists
+  failed_when: gitlab_version | replace(' ', '') | length == 0
+
+- include_tasks: "install/{{ ansible_os_family }}.yml"
+  when: not gitlab_file.stat.exists
+
+- name: "Prepare default user script"
+  template:
+    src: 001_admin.rb.j2
+    dest: /opt/gitlab/embedded/service/gitlab-rails/db/fixtures/production/001_admin.rb
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  when:
+    - not gitlab_bootstrapped.stat.exists
+    - gitlab_admin_username|trim | length > 0
+    - gitlab_admin_password|trim | length > 0
+
+# Start and configure GitLab. Sometimes the first run fails, but after that,
+# restarts fix problems, so ignore failures on this run.
+- name: "Reconfigure GitLab (first run)."
+  command: >
+    gitlab-ctl reconfigure
+    creates=/var/opt/gitlab/bootstrapped
+  failed_when: false
+  become: true
+
+- name: "Create default user if was not created automatically"
+  command: >
+    gitlab-rails runner -e production
+    /opt/gitlab/embedded/service/gitlab-rails/db/fixtures/production/001_admin.rb
+  args:
+    removes: /usr/bin/gitlab-rails
+  become: true
+  failed_when: false
+  when:
+    - not gitlab_bootstrapped.stat.exists
+    - gitlab_admin_username | trim | length > 0
+    - gitlab_admin_password | trim | length > 0
+
+- block:
+    - name: "Create GitLab SSL configuration folder."
+      file:
+        path: /etc/gitlab/ssl
+        state: directory
+        owner: root
+        group: root
+        mode: 0700
+
+    - name: "Create OpenSSL private key self-signed."
+      openssl_privatekey:
+        path: "{{ gitlab_ssl_certificate_key_path }}"
+
+    - name: "Generate an OpenSSL Certificate Signing Request"
+      openssl_csr:
+        path: "{{ gitlab_ssl_certificate_csr }}"
+        privatekey_path: "{{ gitlab_ssl_certificate_key_path }}"
+        country_name: BY
+        state_or_province_name: Minsk
+        locality_name: org
+        organization_name: IT
+        organizational_unit_name: IT
+        common_name: "{{ ansible_fqdn | lower }}"
+
+    - name: "Create self-signed certificate."
+      openssl_certificate:
+        path: "{{ gitlab_ssl_certificate_path }}"
+        subject: "{{ gitlab_ssl_self_signed_cert_subj }}"
+        privatekey_path: "{{ gitlab_ssl_certificate_key_path }}"
+        csr_path: "{{ gitlab_ssl_certificate_csr }}"
+        provider: selfsigned
+  become: true
+  when: gitlab_ssl_create_self_signed_cert
+
+- name: "Copy GitLab configuration file."
+  template:
+    src: gitlab.rb.j2
+    dest: /etc/gitlab/gitlab.rb
+    owner: root
+    group: root
+    mode: 0600
+    backup: true
+  become: true
+  notify: Reconfigure gitlab
+
+- name: "Run all handlers"
+  meta: flush_handlers
+
+- name: "Seed the MySQL DB"
+  command: bash -c "echo 'yes' | gitlab-rake -s gitlab:setup"
+  args:
+    removes: /usr/bin/gitlab-ctl
+  become: true
+  when:
+    - gitlab_mysql_enabled
+    - gitlab_edition == "ee"
+  changed_when: false
+
+# SElinux for gitlab
+- name: "Detecting selinux"
+  include_tasks: selinux-gitlab.yml
+  when:
+    - ansible_selinux.status == "enabled"
+    - ansible_selinux.mode != "disabled"

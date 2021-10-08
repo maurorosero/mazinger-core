@@ -1,0 +1,19 @@
+---
+# Role dependencies
+
+galaxy_info:
+  role_name: select_hostvars
+  namespace: amtega
+  author: Juan Antonio Valiño García
+  description: Setup a fact with hostvars that match a query
+  company: AMTEGA - Xunta de Galicia
+  license: GPLv3 or EUPL
+  min_ansible_version: 2.10
+  platforms:
+    - name: GenericLinux
+      versions:
+        - all
+  galaxy_tags:
+    - hostvars
+
+dependencies: []

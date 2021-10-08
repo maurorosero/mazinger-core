@@ -1,0 +1,35 @@
+---
+- name: prepare
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  roles:
+    - role: robertdebock.bootstrap
+    - role: robertdebock.cron
+
+  post_tasks:
+    - name: create log directory
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /var/log/example
+        - /var/log/example-frequency
+        - /var/log/example-keep
+        - /var/log/example-compress
+        - /var/log/example-script
+
+    - name: create log file
+      ansible.builtin.copy:
+        dest: "{{ item }}"
+        content: "example"
+      loop:
+        - /var/log/example/app.log
+        - /var/log/example-frequency/app.log
+        - /var/log/example-keep/app.log
+        - /var/log/example-compress/app.log
+        - /var/log/example-script/app.log
+        - /var/log/btmp
+        - /var/log/wtmp
+        - /var/log/hawkey.log

@@ -1,0 +1,24 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: ansible-role-gitlab
+  vars:
+    gitlab_project_group_create: true
+    gitlab_project_create: true
+    gitlab_master_user_create: true
+    gitlab_webhooks_create: true
+    gitlab_labels_create: true
+    gitlab_allow_local_requests: true
+    gitlab_edition: ce
+    gitlab_ssl_redirect_http_to_https: false
+    gitlab_ldap_enabled: false
+    gitlab_config_time_zone: UTC
+    gitlab_email_enabled: false
+    gitlab_mysql_enabled: false
+    gitlab_smtp_enabled: false
+    gitlab_admin_email: BF1U1swzaouACMj2S9aQ@admin.com
+    gitlab_admin_name: superadmin
+    gitlab_admin_username: superadmin1
+    gitlab_admin_password: BF1U1swzaouACMj2S9aQ
+    gitlab_admin_token: vsff3t4ferf34wfdsfRRrrfc234

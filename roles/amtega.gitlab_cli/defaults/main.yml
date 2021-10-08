@@ -1,0 +1,35 @@
+---
+# Role default lower priority variables
+
+# Api url
+
+gitlab_cli_api_url:
+
+# API version to use
+
+gitlab_cli_api_version: 4
+
+# Login token
+
+gitlab_cli_login_token:
+
+# Timeout (in seconds) for GitLab CLI operations
+
+gitlab_cli_timeout: 60
+
+# Validate GitLab server certificates
+
+gitlab_cli_validate_certs: yes
+
+# Setup server as the default
+
+gitlab_cli_setup_default: yes
+
+# Config file
+
+gitlab_cli_config_file: ~/.python-gitlab.cfg
+
+# Indicate if GitLab CLI install tasks must be performed. To setup only
+# configuration files set it to no
+
+gitlab_cli_install: yes

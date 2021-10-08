@@ -1,0 +1,32 @@
+---
+- include_tasks: "install.yml"
+  when: gitlab_install
+
+- name: "Set api"
+  set_fact:
+    gitlab_api_version: "{{ (gitlab_version is version('9.0','>=')) | ternary('v4','v3') }}"
+  when:
+    - gitlab_install
+    - gitlab_version != "latest"
+
+- name: "Set api to v4"
+  set_fact:
+    gitlab_api_version: "v4"
+  when:
+    - gitlab_install
+    - gitlab_version == "latest"
+
+- include_tasks: "create_group.yml"
+  when: gitlab_project_group_create
+
+- include_tasks: "create_project.yml"
+  when: gitlab_project_create
+
+- include_tasks: "create_master_user.yml"
+  when: gitlab_master_user_create
+
+- include_tasks: "create_webhooks.yml"
+  when: gitlab_webhooks_create
+
+- include_tasks: "create_labels.yml"
+  when: gitlab_labels_create

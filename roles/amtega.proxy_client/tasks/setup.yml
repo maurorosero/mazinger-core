@@ -1,0 +1,20 @@
+---
+# Role setup tasks
+
+- block:
+    - name: Gather facts
+      setup:
+      when:
+        - proxy_client_support_el_6 | bool
+        - ansible_facts.distribution is undefined
+
+    - include_tasks: permanent.yml
+      when: proxy_client_permanent_value | bool
+
+    - name: Setup facts with proxy environment
+      set_fact:
+        proxy_client_environment: "{{ proxy_client_environment_value }}"
+        _proxy_client_permanent: "{{ proxy_client_permanent_value }}"
+      vars:
+  tags:
+    - role::proxy_client

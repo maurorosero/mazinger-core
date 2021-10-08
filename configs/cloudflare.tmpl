@@ -1,0 +1,8 @@
+---
+#inventory/group_vars/all/aa-defsconf.yml
+# Devops Default Base Data Configuration
+# Generated {{ ansible_today }}
+
+# Cloudflare Plataform Main Domain Settings
+cloudflare_main_domain:          {{ cloudflare_dns }}
+cloudflare_main_register:        {{ domain_key }} 

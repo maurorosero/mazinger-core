@@ -1,0 +1,29 @@
+---
+# Internet proxy for http and https. The default is to load environment
+# variables
+
+proxy_client_http_proxy: >-
+  {{ (ansible_facts.env | default({})).http_proxy | default('') }}
+proxy_client_https_proxy: >-
+  {{ (ansible_facts.env | default({})).https_proxy | default('') }}
+
+# List with domains/IPs to bypass previous proxy settings. The default is to
+# load environment variables
+
+proxy_client_no_proxy: >-
+  {{ (ansible_facts.env | default({})).no_proxy | default('') }}
+
+# Make the proxy client config permanent in the system environment variables
+
+proxy_client_permanent: yes
+
+# Indicate the that the host var proxy_client_permanent has priority over
+# vars passed to the role
+
+proxy_client_permanent_hostvars_priority: yes
+
+# Indicate if the role must support Enterprise Linux (RHEL/CentOS) 6. You can
+# set this value to `no` if you don't use these versions and you want to speed
+# up the role
+
+proxy_client_support_el_6: yes

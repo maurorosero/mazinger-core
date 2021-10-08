@@ -1,0 +1,112 @@
+---
+# Playbook:     setup_stations.yml
+# Description:  Setup/Update Environment for Developer Station
+# Author:       Mauro Rosero P,
+# Email:        mrosero@libretechnology.com (mauro.rosero@gmail.com)
+# Organization: OPEN TECHNOLOGY SOLUTIONS, S. A.
+
+# Date: 10-02-2020
+# Note: Run from some computers with ansible installed.
+# Require update ansible roles from roles/requirements.txt
+# '''' if you run in awx controller, you need set env var DATAPATH on Settings / Works with the path of data.
+# '''' if you run in awx controller, for scheduled automatic provisioned sysop procees, require define go_rebuild
+# '''' with value equal to 'yes' - rebuild setup to manage
+
+- name: --| {{ playbook_program }} - {{ playbook_description }}
+  hosts: stations
+  become: yes
+  ignore_unreachable: yes 
+  gather_facts: yes
+
+  vars:
+    playbook_program:       'setup_stations'
+    playbook_description:   'Setup/Update Environment for Developer Station'
+    managed_sufix:          'setup'
+    managed_file:           '{{ playbook_status }}/{{ managed_sufix }}'
+    sysop_action:           'CONFIG STATION'
+    installed_message:      'SETUP/UPDATE DEVELOPER STATION'
+    notify_subject:         '[{{ sysop_action }} ({{ ansible_hostname | upper }}] {{ installed_message }}'
+    ansible_month:          "{{ lookup('pipe','date +%Y%m') }}"
+    exim_upgrade:           "{{ lookup('env', 'DS_EXIM_UPGRADE') | default(False) }}"
+    notify_path:            "../templates/{{ mazinger_lang }}"
+    notify_mail_test:       '{{ notify_path}}/mz_email_test.txt'
+
+    template_path:       "../configs"
+    defaults_path:       '../defaults'
+    defaults_template:   'defaults.tmpl'
+    defaults_config:     'configs.ini'
+
+    exim4_sendonly_email_addresses:
+      root:                 "{{ lookup('env', 'DS_ROOT_EMAIL') | default('') }}"
+
+  tasks:
+
+  - name: ---| {{ playbook_description }}
+    block:
+
+    - name: ---|| {{ installed_message }}
+      block:
+
+      - name: Check if ansible installed
+        raw: 'ansible --version'
+        ignore_errors: yes
+        register: ansible_installed
+
+      - name: Fail when ansible not installed
+        fail:
+          msg: "Failed!!  Please, try to install ansible first..."
+        when: ansible_installed.rc != 0
+
+      - name: Run apt-get update
+        apt:
+          update_cache: yes
+        when: ansible_distribution == "Ubuntu" or ansible_distribution == "Linux Mint" or ansible_distribution == "Debian"
+ 
+      - name: Install requirements packages
+        include_role:
+          name: grog.package
+
+      - name: Install required python modules
+        include_role:
+          name: geerlingguy.pip
+
+      - name: Check if exim4 mail server are installed
+        raw: 'exim4 --version'
+        ignore_errors: yes
+        register: exim_installed
+
+      - name: Install local mail server (send only)
+        block:
+
+        - include_role:
+            name: tschifftner.exim4_sendonly
+
+        - name: Get email for test mail server
+          pause:
+            prompt: "Get test email address"
+          register: input_email_test
+ 
+        - name: Sending an e-mail using the local machine, not the Ansible controller node
+          community.general.mail:
+            sender: 'Notificaciones {{ apps_name}} <no-reply@{{ developer_domain }}>'
+            to: '{{ input_email_test.user_input }}'
+            subtype: plain
+            subject: 'Instalación - {{ apps_name }}'
+            body: "{{ lookup('template', notify_mail_test) }}" 
+ 
+        - debug:
+            msg: "Se ha enviado un correo electrónico de prueba a la dirección suministrada, verifique su correcta recepción!"
+
+        when: exim_installed.rc != 0 or (exim_upgrade is defined and exim_upgrade)
+
+      - name: Check if config.ini file exists
+        ansible.builtin.stat:
+          path: "{{ defaults_path }}/{{ defaults_config }}"
+        register: f
+
+      - name: Build Default Input Configs File [{{ defaults_path }}/{{ defaults_config }}]
+        template:
+          src: "{{ template_path }}/{{ defaults_template }}"
+          dest: "{{ defaults_path }}/{{ defaults_config }}"
+        when: not f.stat.exists
+

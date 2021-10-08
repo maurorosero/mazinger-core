@@ -1,0 +1,74 @@
+{%- set global_ns = namespace(empty=true) -%}
+
+{%- if select_hostvars_query.scope | default("current") == "current" -%}
+    {%- set hostnames = [ inventory_hostname ] -%}
+{%- else -%}
+    {%- set hostnames = hostvars.keys() | list -%}
+{%- endif -%}
+
+{%- if select_hostvars_query.host_pattern is defined -%}
+{%- set hostnames = hostnames
+                    | select("search", select_hostvars_query.host_pattern)
+                    | list -%}
+{%- endif -%}
+
+{%- if select_hostvars_query.host_exclude_pattern is defined -%}
+{%- set hostnames = hostnames
+                    | reject("search", select_hostvars_query.host_exclude_pattern)
+                    | list -%}
+{%- endif -%}
+
+{%- for hostname in hostnames -%}
+
+    {%- for v in hostvars[hostname] -%}
+
+        {%- if v != select_hostvars_query.fact_name
+              and v is search(select_hostvars_query.pattern)
+              and (select_hostvars_query.exclude_pattern | default("") | length > 0)
+                   | ternary(v is not search(select_hostvars_query.exclude_pattern
+                                             | default("", true)),
+                                             true) -%}
+
+            {%- set var_ns = namespace(found=true) -%}
+
+            {%- set host_vars_variable = hostvars[hostname][v] -%}
+
+            {%- if host_vars_variable is sequence
+                   and host_vars_variable is not string
+                   and host_vars_variable is not mapping -%}
+                {%- set host_vars_variable_list = host_vars_variable -%}
+            {%- else -%}
+                {%- set host_vars_variable_list = [host_vars_variable] -%}
+            {%- endif -%}
+
+            {%- for a in select_hostvars_query.attributes | default([]) -%}
+                {%- for host_vars_variable_item in host_vars_variable_list -%}
+                    {%- if host_vars_variable_item[a] is defined -%}
+                        {%- set var_ns.found = var_ns.found and true -%}
+                    {%- else -%}
+                        {%- set var_ns.found = var_ns.found and false -%}
+                    {%- endif -%}
+                {%- endfor -%}
+            {%- else -%}
+                {%- set var_ns.found = true -%}
+            {%- endfor %}
+
+            {%- if var_ns.found -%}
+                {%- set global_ns.empty = false -%}
+                {%- if select_hostvars_query.output_type | default("list") == "list" -%}
+- {{ hostvars[hostname][v] | to_json }}{{ "\n" }}
+                {%- else -%}
+{{ v }}: {{ hostvars[hostname][v] | to_json }}{{ "\n" }}
+                {%- endif -%}
+            {%- endif -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endfor -%}
+
+{%- if global_ns.empty -%}
+    {%- if select_hostvars_query.output_type == "list" -%}
+      []
+    {%- else -%}
+      {}
+    {%- endif -%}
+{%- endif -%}

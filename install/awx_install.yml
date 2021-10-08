@@ -1,0 +1,198 @@
+---
+# Playbook:     awx_install.yml
+# Description:  Setup/Install Ansible AWX Main Controller
+# Author:       Mauro Rosero P,
+# Email:        mrosero@libretechnology.com (mauro.rosero@gmail.com)
+# Organization: OPEN TECHNOLOGY SOLUTIONS, S. A.
+
+# Date: 10-02-2020
+# Note: Run from some computers with ansible installed.
+# Require update ansible roles from roles/requirements.txt
+# '''' if you run in awx controller, you need set env var DATAPATH on Settings / Works with the path of data.
+# '''' if you run in awx controller, for scheduled automatic provisioned sysop procees, require define go_rebuild
+# '''' with value equal to 'yes' - rebuild setup to manage
+
+- name: --| {{ playbook_program }} - {{ playbook_description }}
+  hosts: [controller]
+  become: yes
+  ignore_unreachable: yes 
+  gather_facts: yes
+
+  vars:
+    playbook_program:       'awx_install'
+    playbook_description:   'Setup/Install Ansible AWX Main Controller'
+    managed_sufix:          'ansible'
+    managed_file:           '{{ playbook_status }}/{{ managed_sufix }}'
+    sysop_action:           'AWX CONTROLLER SETUP'
+    installed_message:      'AWX Main Controller Configuration'
+    notify_subject:         '[{{ sysop_action }} ({{ ansible_hostname | upper }}] {{ installed_message }}'
+    notify_path:            "../templates/{{ mazinger_lang }}"
+    ansible_month:          "{{ lookup('pipe','date +%Y%m') }}"
+
+    data_path:              "{{ lookup('env','DATAPATH')| default(data_station_path, true) }}"
+    inventory_all_path:     "../inventory/group_vars/all"
+    inventory_path:         "../inventory/"
+    template_path:          "../defaults"
+    devops_binpath:         "../bin"
+    file_date:              "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+       
+    awx_pvc_file:           "public-static-pvc.yml"
+    awx_deploy_file:        "awx-instance-deployment.yml"
+
+
+  tasks:
+
+  - name: ---| {{ playbook_description }}
+    block:
+
+    - name: Waiting for Awx Server connection 
+      wait_for_connection:
+        timeout: '{{ sysop_timeout_connection | int }}'
+
+    - name: ---|| {{ installed_message }}
+      block:
+
+      - name: Install requirements packages
+        include_role:
+          name: grog.package
+
+      - name: Install required python modules
+        include_role:
+          name: geerlingguy.pip
+public-static-pvc.yml
+      - name: Create sysop managed folder status
+        file:
+          path: '{{ playbook_status }}'
+          state: directory
+          owner: root
+          group: root
+          mode: 0770
+
+      - name: Set Timezone server ({{ devops_timezone }})
+        timezone:
+          name: '{{ devops_timezone }}'
+
+
+      - name: Set a hostname to {{ ansible_host }}
+        ansible.builtin.hostname:
+          name: '{{ ansible_host }}'
+
+      - name: Enable service firewalld and ensure it is not masked
+        systemd:
+          name: firewalld
+          enabled: yes
+          masked: no
+
+      - name: Make sure a service is running
+        systemd: 
+          name: firewalld
+          state: started 
+
+      - name: FirewallD rules
+        firewalld:
+          permanent: yes
+          immediate: yes
+          service: "{{ item }}"
+          state: enabled
+        with_items:
+          - http
+          - https
+
+      - name: Set firewalld accept https rules
+        ansible.posix.firewalld:
+          masquerade: yes
+          zone: public
+          state: enabled
+          permanent: yes
+
+      - name: Reload service firewalld
+        systemd:
+          name: firewalld
+          state: reloaded
+
+      - name: Test if k3s installed
+        raw: 'kubectl version --short'
+        ignore_errors: yes
+        register: k3s_result
+
+      - name: Disable SELinux
+        ansible.posix.selinux:
+          state: disabled
+        when: k3s_result.rc != 0
+
+      - name: Put SELinux in permissive mode, logging actions that would be blocked.
+        ansible.posix.selinux:
+          policy: targeted
+          state: permissive
+        when: k3s_result.rc != 0
+
+      - name: Reboot the machine (Wait for 5 min)
+        reboot:
+          reboot_timeout: 300
+        when: k3s_result.rc != 0
+
+      - name: Install k3s
+        raw: 'curl -sfL {{ k3s_repo }} | sh '
+        register: k3s_installed
+        when: k3s_result.rc != 0
+
+      - name: Fail when k3s not installed 
+        fail:
+          msg: "Check or repeat k3s server installation"
+        when: k3_installed is defined and k3s_installed.rc != 0
+
+      - name: Install awx-operator version {{ awx_version }} if k3s are installed
+        raw: 'kubectl apply -f https://raw.githubusercontent.com/ansible/awx-operator/{{ awx_version }}/deploy/awx-operator.yaml'
+        register: awx_operator
+
+      - name: Fail when k3s not installed if awx-operator not installed
+        fail:
+          msg: "Check or repeat awx-operator installation"
+        when: awx_operator.rc != 0
+
+      - name: Create awx k3s namespace
+        raw: 'kubectl create ns awx'
+        when: k3s_result.rc != 0
+
+      - name: Set awx kubernetes configuration files
+        template:
+          src: '{{ template_path }}/{{ item }}'
+          dest: '/tmp/{{ item }}'
+        with_items:
+        - '{{ awx_pvc_file }}'
+        - '{{ awx_deploy_file }}'
+
+      - name: Configure awx instance
+        raw: 'kubectl apply -f /tmp/{{ item }} -n awx'
+        with_items:
+        - '{{ awx_pvc_file }}'
+        - '{{ awx_deploy_file }}'
+
+      - name: Check if awx is running
+        raw: "kubectl get pods -l 'app.kubernetes.io/managed-by=awx-operator' -n awx | grep 4/4 | tr -s ' ' | cut -d ' ' -f 3"
+        retries: 5
+        delay: 3
+        register: awx_running
+        until: awx_running.rc == 0 and awx_running.stdout_lines is defined and  awx_running.stdout_lines[0] == "Running"
+
+      - name: Get awx web port
+        raw: "kubectl get service -n awx | grep awx-service | tr -s ' ' | cut -d ' ' -f 5 | cut -d ':' -f 2 | cut -d '/' -f 1"
+        register: awx_webport
+        when: awx_running.stdout_lines is defined and  awx_running.stdout_lines[0] == "Running"
+
+      - name: Set firewalld to accept awx web
+        ansible.posix.firewalld:
+          port: '{{ awx_webport.stdout_lines[0] }}/tcp'
+          zone: public
+          state: enabled
+          permanent: yes
+          immediate: yes
+        when: awx_webport.stdout_lines is defined
+        
+      - name: Get awx-admin password
+        raw: 'kubectl -n awx get secret awx-admin-password -o jsonpath="{.data.password}" | base64 --decode'
+        register: awx_adminpass
+        when: awx_running.stdout_lines is defined and  awx_running.stdout_lines[0] == "Running"
+
+
+

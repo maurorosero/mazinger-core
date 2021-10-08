@@ -1,0 +1,113 @@
+---
+
+dependency:
+  name: galaxy
+  enabled: yes
+  options:
+    ignore-certs: yes
+    ignore-errors: yes
+    role-file: "${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml"
+    requirements-file: "${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml"
+driver:
+  name: docker
+lint: "${MOLECULE_SCENARIO_DIRECTORY}/linters.sh"
+platforms:
+  - name: "centos6-${INSTANCE_UUID:-1}"
+    image: centos:6
+    dockerfile: Dockerfile.centos6.j2
+    groups:
+      - molecule_hosts
+      - molecule_hosts_centos
+      - molecule_hosts_centos_6
+  - name: "centos7-${INSTANCE_UUID:-1}"
+    image: centos:7
+    groups:
+      - molecule_hosts
+      - molecule_hosts_centos
+      - molecule_hosts_centos_7
+  - name: "centos8-${INSTANCE_UUID:-1}"
+    image: centos:8
+    groups:
+      - molecule_hosts
+      - molecule_hosts_centos
+      - molecule_hosts_centos_8
+  - name: "fedora33-${INSTANCE_UUID:-1}"
+    image: fedora:33
+    groups:
+      - molecule_hosts
+      - molecule_hosts_fedora
+      - molecule_hosts_fedora_33
+  - name: "fedora34-${INSTANCE_UUID:-1}"
+    image: fedora:34
+    groups:
+      - molecule_hosts
+      - molecule_hosts_fedora
+      - molecule_hosts_fedora_34
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callback_enabled: profile_tasks
+  inventory:
+    hosts:
+      molecule_hosts:
+        vars:
+          package_name: "httpd"
+          packages_debug: yes
+          packages_load_from_hostvars: yes
+          packages_python_virtualenv: /var/lib/ansible/venv
+          packages_os:
+            centos:
+              all:
+                telnet: present
+              6:
+                httpd: present
+              7:
+                - name: "{{ package_name }}"
+                  state: present
+                - tomcat: present
+              8:
+                - name: "{{ package_name }}"
+                  state: present
+                - tomcat-native: present
+            fedora:
+              33:
+                httpd: present
+                tomcat: present
+              34:
+                httpd: present
+                tomcat: present
+                "@Development Tools": present
+          packages_python:
+            centos:
+              6:
+                - "pexpect>=3.3": present
+                - "gitlab": present
+              7:
+                "pexpect>=3.3": present
+              8:
+                "pexpect>=3.3": present
+            fedora:
+              33:
+                - name: "pexpect>=3.3"
+                  state: present
+                  pip_extra_args: "--upgrade"
+                  virtualenv: ~/.ansible_venv
+                  virtualenv_site_packages: no
+              34:
+                "pexpect>=3.3": present
+          packages_os_extra:
+            all:
+              all:
+                lynx: present
+          packages_python_extra:
+            centos:
+              7:
+                lxml: present
+              8:
+                lxml: present
+      molecule_hosts_fedora:
+        vars:
+          ansible_python_interpreter: /usr/bin/python3
+verifier:
+  name: ansible

@@ -1,0 +1,25 @@
+---
+galaxy_info:
+  author: G. Roggemans
+  description: A role for rebooting hosts
+  company: GROG
+  license: MIT
+  min_ansible_version: 2.3
+  platforms:
+  - name: GenericUNIX
+    versions:
+    - any
+  - name: GenericBSD
+    versions:
+    - any
+  - name: GenericLinux
+    versions:
+    - any
+  galaxy_tags:
+  - power
+  - reboot
+  - system
+
+allow_duplicates: yes
+
+dependencies: []

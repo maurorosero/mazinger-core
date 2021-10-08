@@ -1,0 +1,26 @@
+---
+# Role default lower priority variables
+
+# Dictionary with the supported distributions. The format is:
+#
+# {
+#   <distribution1>: <minimum version>
+#   <distribution2>: <minimum version>
+#   <distributionN>: <minimum version>
+# }
+
+check_platform_distributions: {}
+
+# List of strings with the variable names that must be defined
+
+check_platform_variables: []
+
+# Dict with distribution aliases. Before comparing ansible_facts distribution
+# name against the required distribution, this map will be applied.
+
+check_platform_aliases:
+  redhat: rhel
+
+# Enable or disable platform check
+
+check_platform_enabled: yes

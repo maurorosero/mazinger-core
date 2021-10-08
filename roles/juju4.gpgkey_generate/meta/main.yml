@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: juju4
+  description: Generate automatically gpg keys
+  license: BSD
+  min_ansible_version: 1.9
+  platforms:
+  - name: EL
+    versions:
+     - 7
+     - 8
+  - name: Ubuntu
+    versions:
+    - trusty
+    - xenial
+    - bionic
+  galaxy_tags:
+  - security
+dependencies:
+  - juju4.redhat_epel

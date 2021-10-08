@@ -1,0 +1,7 @@
+---
+# Role tasks
+
+- include_tasks: setup.yml
+  when: proxy_client_process_required | bool
+  tags:
+    - role::proxy_client

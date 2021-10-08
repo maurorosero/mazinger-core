@@ -1,0 +1,17 @@
+---
+
+- name: Check if host is online
+  become: no
+  local_action: wait_for
+    delay="{{ poweroff_ping_delay }}"
+    state=started
+    timeout="{{ poweroff_ping_timeout }}"
+    host="{{ ansible_ssh_host }}"
+    port="{{ poweroff_ping_port }}"
+  failed_when: false
+  register: poweroff_pong
+  when: not poweroff_strict|string in 'True,true,Yes,yes'
+
+- include: poweroff.yml
+  when: poweroff_strict|string in 'True,true,Yes,yes' or
+        (poweroff_pong.state | default(false)) == 'started'

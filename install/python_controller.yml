@@ -1,0 +1,58 @@
+---
+# Playbook:     python_controller.yml
+# Description:  Setup/Install python for minimal server installation
+# Author:       Mauro Rosero P,
+# Email:        mrosero@libretechnology.com (mauro.rosero@gmail.com)
+# Organization: OPEN TECHNOLOGY SOLUTIONS, S. A.
+
+# Date: 10-02-2020
+# Note: Run from some computers with ansible installed.
+# Require update ansible roles from roles/requirements.txt
+# '''' if you run in awx controller, you need set env var DATAPATH on Settings / Works with the path of data.
+# '''' if you run in awx controller, for scheduled automatic provisioned sysop procees, require define go_rebuild
+# '''' with value equal to 'yes' - rebuild setup to manage
+
+- name: --| {{ playbook_program }} - {{ playbook_description }}
+  hosts: [controller]
+  become: yes
+  ignore_unreachable: yes
+  gather_facts: no
+
+  vars:
+    playbook_program:       'python_controller'
+    playbook_description:   'Setup/Install python for minimal server installation'
+    managed_sufix:          'ansible'
+    managed_file:           '{{ playbook_status }}/{{ managed_sufix }}'
+    sysop_action:           'SERVER PYTHON'
+    installed_message:      'Install/Configure minimal python'
+    notify_subject:         '[{{ sysop_action }} ({{ ansible_hostname | upper }}] {{ installed_message }}'
+    notify_path:            "../templates/{{ mazinger_lang }}"
+    ansible_month:          "{{ lookup('pipe','date +%Y%m') }}"
+
+    data_path:              "{{ lookup('env','DATAPATH')| default(data_station_path, true) }}"
+    inventory_all_path:     "../inventory/group_vars/all"
+    inventory_path:         "../inventory/"
+    template_path:          "../defaults"
+    devops_binpath:         "../bin"
+    file_date:              "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+
+  tasks:
+
+  - name: ---| {{ playbook_description }}
+    block:
+
+    - name: ---|| {{ installed_message }}
+      block:
+
+      - name: run yum/dnf - install/update python
+        raw: test -e /usr/bin/python3 || (dnf update -y && dnf install -y python3)
+        register: command_result
+        changed_when: command_result.stdout | length > 0
+        when: ansible_os_family == "Redhat" or ansible_os_family == "CentOS"
+
+      - name: run apt - install/update python
+        raw: test -e /usr/bin/python3 || (apt update && apt install -y python3)
+        register: command_result
+        changed_when: command_result.stdout | length > 0
+        when: ansible_os_family == "Debian"
+

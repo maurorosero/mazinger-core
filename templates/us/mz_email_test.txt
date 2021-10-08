@@ -1,0 +1,9 @@
+Estimated,
+User
+
+This is a proof of notification of our infrastructure solution {{apps_desc}} Vers. {{apps_revs}} Updt. {{apps_updt}} ({{apps_name}}). This email has been sent to you because you are installing or updating a developer station and we are verifying the correct operation of the local mail server.
+
+Attempt,
+
+{{developer_name}}
+{{developer_cname}}

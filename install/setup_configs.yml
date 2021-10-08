@@ -1,0 +1,188 @@
+---
+# Playbook:     setup_configs.yml
+# Description:  Setup Default Config Devops Platform
+# Author:       Mauro Rosero P,
+# Email:        mrosero@libretechnology.com (mauro.rosero@gmail.com)
+# Organization: OPEN TECHNOLOGY SOLUTIONS, S. A.
+
+# Date: 10-02-2020
+# Note: Run from some computers with ansible installed.
+# Require update ansible roles from roles/requirements.txt
+# '''' if you run in awx controller, you need set env var DATAPATH on Settings / Works with the path of data.
+# '''' if you run in awx controller, for scheduled automatic provisioned sysop procees, require define go_rebuild
+# '''' with value equal to 'yes' - rebuild setup to manage
+
+- name: --| {{ playbook_program }} - {{ playbook_description }}
+  hosts: install
+  become: no
+  gather_facts: yes
+
+  vars:
+    playbook_program:       'setup_configs'
+    playbook_description:   'Setup Default Config Devops Platform'
+    managed_sufix:          'setup'
+    managed_file:           '{{ playbook_status }}/{{ managed_sufix }}'
+    sysop_action:           'CONFIG PARAMETERS'
+    installed_message:      'SETUP MAZINGER DEVOPS CONFIGURATION'
+    notify_subject:         '[{{ sysop_action }} ({{ ansible_hostname | upper }}] {{ installed_message }}'
+    ansible_month: "{{ lookup('pipe','date +%Y%m') }}"
+
+    inventory_all_path:  "../inventory/group_vars/all"
+    inventory_path:      "../inventory/"
+    template_path:       "../configs"
+    defaults_path:       '../defaults'
+    notify_path:         "../templates/{{ mazinger_lang }}"
+    devops_binpath:      "../bin"
+    groups_config:       "{{ template_path}}/groups.dat"
+    master_config:       "aa-defsconf.yml"
+    master_template:     "aa-defsconf.tmpl"
+    kvaas_config:        "kvaas.ini"
+    kvaas_template:      "kvaas.tmpl"
+    developer_config:    "developers.ini"
+    developer_template:  "devops.tmpl"
+    defaults_template:   'configs.tmpl'
+    defaults_config:     'configs.ini'
+
+    mazinger_create:     "{{ devops_binpath }}/db_create.py"
+    mazinger_groups:     "{{ devops_binpath }}/db_groups.py"
+    gitconf_file:        '~/.gitconfig'
+    cifs_mountpath:      '{{ ansible_env.HOME }}/media'
+    file_date:           "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+
+    notify_mail_install: '{{ notify_path}}/mazinger_install.html'
+
+    exim4_sendonly_email_addresses:
+      root: '{{ input_owner_mail }}'
+
+  vars_prompt:
+
+    - name: input_companycode
+      prompt: Get company code for devops platform
+      default: "{{ lookup('ini', 'def_companycode section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_companyname
+      prompt: Get company name for devops platform
+      default: "{{ lookup('ini', 'def_companyname section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_companydomain
+      prompt: Get company Domain for devops platform
+      default: "{{ lookup('ini', 'def_companydomain section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_owner_name
+      prompt: Get manager or owner full name
+      default: "{{ lookup('ini', 'def_owner_name section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_owner_mail
+      prompt: Get manager or owner email
+      default: "{{ lookup('ini', 'def_owner_mail section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_devops_mail
+      prompt: Get Support Devops email
+      default: "{{ lookup('ini', 'def_devops_mail section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_servers_path
+      prompt:  Get devops data path on awx-servers
+      default: "{{ lookup('ini', 'def_servers_path section=config file=../defaults/configs.ini') | default('/srv/data/devops-data') }}"
+      private: no
+
+    - name: input_install_path
+      prompt:  Get devops data path on awx-clients
+      default: "{{ lookup('ini', 'def_install_path section=config file=../defaults/configs.ini') | default('../../devops-data') }}"
+      private: no
+
+    - name: input_python_server
+      prompt:  Get python interpreter
+      default: "{{ lookup('ini', 'def_python_server section=config file=../defaults/configs.ini') | default('/usr/bin/python3') }}"
+      private: no
+
+    - name: input_timezone
+      prompt:  Get devops plataform timezone
+      default: "{{ lookup('ini', 'def_timezone section=config file=../defaults/configs.ini') | default('America/Panama') }}"
+      private: no
+
+    - name: input_etcd0_server
+      prompt:  Get KVaaS Controller Server DNS
+      default: "{{ lookup('ini', 'def_etcd0_server section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_etcd0_kvport
+      prompt:  Get KVaaS Service Port
+      default: "{{ lookup('ini', 'def_kvport section=config file=../defaults/configs.ini') | default(2379) }}"
+      private: no
+
+    - name: input_db_server
+      prompt:  Get Devops Non-SQL Database (MongoDB) DNS
+      default: "{{ lookup('ini', 'def_db_server section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_store_server
+      prompt:  Get Primary Store Server (CIFS) DNS
+      default: "{{ lookup('ini', 'def_store_server section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_ctx01_server
+      prompt:  Get Primary Ansible Controller (AWX)
+      default: "{{ lookup('ini', 'def_ctx01_server section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+  tasks:
+
+  - name: ---| {{ playbook_description }}
+    block:
+
+    - name: ---|| {{ installed_message }}
+      block:
+
+      - name: Build Default Input Configs File {{ defaults_config }}
+        template:
+          src: "{{ template_path }}/{{ defaults_template }}"
+          dest: "{{ defaults_path }}/{{ defaults_config }}"
+          mode: u=rw,g=r,o=r
+
+      - name: Build Config Devops Inventory File {{ master_config }}
+        template:
+          src: "{{ template_path }}/{{ master_template }}"
+          dest: "{{ inventory_all_path }}/{{ master_config }}"
+          mode: u=rw,g=r,o=r
+
+      - name: Build KVaaS Inventory File {{ kvaas_config }}
+        template:
+          src: "{{ template_path }}/{{ kvaas_template }}"
+          dest: "{{ inventory_path }}/{{ kvaas_config }}"
+          mode: u=rw,g=r,o=r
+
+      - name: Check if {{ developer_config }} file exists
+        ansible.builtin.stat:
+          path: "{{ defaults_path }}/{{ developer_config }}"
+        register: f
+
+      - name: Build Default Input Developer File {{ developer_config }}
+        template:
+          src: "{{ template_path }}/{{ developer_template }}"
+          dest: "{{ defaults_path }}/{{ developer_config }}"
+          mode: u=rw,g=r,o=r
+
+      - name: Set owner email notification
+        set_fact:
+           owner_notify: '"{{ input_owner_name }}" <{{ input_owner_mail }}>'
+           to_email_notify: '"{{ input_owner_name }}" <{{ input_owner_mail }}>'
+
+      - name: Set devops email notification
+        set_fact:
+           to_email_notify: '{{ owner_notify }}; "DevOPS" <{{ input_devops_mail }}>'
+        when: input_owner_mail != input_devops_mail
+
+      - name: Sending an e-mail using the local machine, not the Ansible controller node
+        community.general.mail:
+          sender: 'Notificaciones {{ apps_name}} <no-reply@{{ input_companydomain }}>'
+          to: '{{ to_email_notify }}'
+          subtype: html
+          subject: 'Instalación - {{ apps_name }}'
+          body: "{{ lookup('template', notify_mail_install) }}"
+

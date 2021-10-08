@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - role: ansible-role-sudo
+      sudo_list:
+        - name: user
+          sudo:
+            hosts: ALL
+            as: ALL
+            commands: ALL
+      sudo_grouplist:
+        - name: group
+          sudo:
+            hosts: ALL
+            as: ALL
+            commands: ALL

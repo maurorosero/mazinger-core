@@ -1,0 +1,28 @@
+# This is an Ansible inventory file in INI format. You can define a list of
+# hosts and groups to be managed by this particular inventory.
+# ANSIBLE AWX MAIN COTROLLER SERVER INVENTORY
+# inventory/kvaas.ini
+# Generated {{ ansible_today }}
+
+[all]
+localhost     ansible_connection=local
+awx           ansible_host={{ input_ctx01_server }}
+install       ansible_connection=local
+stations      ansible_connection=local
+etcd0         ansible_host={{ input_etcd0_server }}
+
+[etcd]
+etcd0
+
+[etcd_cluster]
+etcd0
+
+[controller]
+awx
+
+[roles]
+stations
+awx
+
+
+

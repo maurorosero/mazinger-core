@@ -1,0 +1,23 @@
+@startuml
+scale max 900 width
+
+HTTPS - [Mazinger Core]
+package "Mazinger Core" {
+  ETCD - [KVAAS SERVICES]
+  database "MONGODB" {
+    JSON - [NOSQLDB SERVICES]
+  }
+  CIFS - [STORAGE SERVICES]
+  GIT  - [GITLAB SERVICES]
+  [ANSIBLE SERVICES] - SSH
+}
+[Developer Station] - ETCD
+[Developer Station] - JSON
+[Developer Station] - CIFS
+[Developer Station] - GIT
+[Developer Station] - SSH
+note right of [Developer Station]
+  Para tareas de instalación,
+  actualización y mantenimiento
+end note
+@enduml

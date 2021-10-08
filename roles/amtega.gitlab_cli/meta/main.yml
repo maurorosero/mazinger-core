@@ -1,0 +1,49 @@
+---
+# Role dependencies
+
+galaxy_info:
+  role_name: gitlab_cli
+  namespace: amtega
+  author: Juan Antonio Valiño García
+  description: Setup GitLab command line client
+  company: AMTEGA - Xunta de Galicia
+  license: GPLv3 or EUPL
+  min_ansible_version: 2.10
+  platforms:
+    - name: EL
+      versions:
+        - 7
+    - name: Fedora
+      versions:
+        - 33
+        - 34
+  galaxy_tags:
+    - gitlab
+    - cli
+
+dependencies:
+  - role: amtega.check_platform
+    vars:
+      check_platform_distributions:
+        centos: 7
+        fedora: 33
+        redhat: 7
+
+  - role: amtega.packages
+    when: gitlab_cli_install | bool
+    vars:
+      packages_os:
+        centos:
+          all:
+            python3-urllib3: present
+        fedora:
+          all:
+            python3-urllib3: present
+        redhat:
+          all:
+            python3-urllib3: present
+      packages_python:
+        all:
+          all:
+            "python-gitlab>=1.6": latest
+            PyYaml: present

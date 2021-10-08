@@ -1,0 +1,16 @@
+[config]
+def_companycode={{ input_companycode | default('LIBRETECH', true) }}
+def_companyname={{ input_companyname | default('LIBRETECH, S. A.', true) }}
+def_companydomain={{ input_companydomain | default('libretechnology.com', true) }}
+def_owner_name={{ input_owner_name | default('', true) }}
+def_owner_mail={{ input_owner_mail | default('', true) }}
+def_devops_mail={{ input_devops_mail | default('', true) }}
+def_servers_path={{ input_servers_path | default('/srv/data/devops-data', true) }}
+def_install_path={{ input_install_path | default('../../devops-data', true) }}
+def_python_server={{ input_python_server | default('/usr/bin/python3',true) }}
+def_timezone={{ input_timezone | default('America/Panama', true) }}
+def_etcd0_server={{ input_etcd0_server | default('None', true) }}
+def_kvport={{ input_etcd0_kvport | default(2379, true) }}
+def_db_server={{ input_db_server | default('None', true) }}
+def_store_server={{ input_store_server | default('None', true) }}
+def_ctx01_server={{ input_ctx01_server | default('None', true) }}

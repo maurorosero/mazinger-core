@@ -1,0 +1,17 @@
+---
+- name: prepare
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  roles:
+    - role: robertdebock.bootstrap
+    - role: robertdebock.core_dependencies
+    - role: robertdebock.postfix
+      postfix_relayhost: "[relay.example.com]"
+      postfix_myhostname: "smtp.example.com"
+      postfix_mydomain: "example.com"
+      postfix_myorigin: "example.com"
+      postfix_aliases:
+        - name: root
+          destination: test@example.com

@@ -1,0 +1,50 @@
+---
+# Role configure tasks
+
+- block:
+    - name: Setup gitlab cli server default in config file
+      ini_file:
+        path: "{{ gitlab_cli_config_file }}"
+        section: "global"
+        option: "default"
+        value: "{{ gitlab_cli_servername }}"
+        mode: 0600
+        state: present
+      when: gitlab_cli_setup_default | bool
+
+    - name: Setup gitlab cli server in config file
+      ini_file:
+        path: "{{ gitlab_cli_config_file }}"
+        section: "{{ gitlab_cli_servername }}"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+        mode: 0600
+        state: present
+      loop:
+        - option: url
+          value: "{{ gitlab_cli_api_url }}"
+
+        - option: private_token
+          value: "{{ gitlab_cli_login_token }}"
+
+        - option: api_version
+          value: "{{ gitlab_cli_api_version }}"
+
+        - option: timeout
+          value: "{{ gitlab_cli_timeout }}"
+
+        - option: ssl_verify
+          value: "{{ (gitlab_cli_validate_certs) | ternary('yes', 'no') }}"
+      loop_control:
+        label: "{{ item.option }}"
+
+    - name: Setup fact pointing to gitlab_cli binary
+      set_fact:
+        gitlab_cli_path: >-
+          {{ ansible_facts.packages_python_bin_dir | default("") }}/gitlab
+  vars:
+    gitlab_cli_servername: >-
+      {{ gitlab_cli_api_url | urlsplit('hostname') }}
+  tags:
+    - role::gitlab_cli
+    - role::gitlab_cli::configure

@@ -1,0 +1,49 @@
+---
+# Playbook:     update_roles.yml
+# Description:  Install/Update Ansible Roles
+# Author:       Mauro Rosero P,
+# Email:        mrosero@libretechnology.com (mauro.rosero@gmail.com)
+# Organization: OPEN TECHNOLOGY SOLUTIONS, S. A.
+
+# Date: 10-02-2020
+# Note: Run from some computers with ansible installed.
+# Require update ansible roles from roles/requirements.txt
+# '''' if you run in awx controller, you need set env var DATAPATH on Settings / Works with the path of data.
+# '''' if you run in awx controller, for scheduled automatic provisioned sysop procees, require define go_rebuild
+# '''' with value equal to 'yes' - rebuild setup to manage
+
+- name: --| {{ playbook_program }} - {{ playbook_description }}
+  hosts: [roles]
+  become: no
+  ignore_unreachable: yes
+  gather_facts: yes
+
+  vars:
+    playbook_program:       'update_roles'
+    playbook_description:   'Install/Update Ansible Roles'
+    managed_sufix:          'ansible'
+    managed_file:           '{{ playbook_status }}/{{ managed_sufix }}'
+    sysop_action:           'UPDATE ROLES'
+    installed_message:      'Install/Update roles for Ansible Controller'
+    notify_subject:         '[{{ sysop_action }} ({{ ansible_hostname | upper }}] {{ installed_message }}'
+    notify_path:            "../templates/{{ mazinger_lang }}"
+    ansible_month:          "{{ lookup('pipe','date +%Y%m') }}"
+
+    data_path:              "{{ lookup('env','DATAPATH')| default(data_station_path, true) }}"
+    inventory_all_path:     "../inventory/group_vars/all"
+    inventory_path:         "../inventory/"
+    template_path:          "../defaults"
+    devops_binpath:         "../bin"
+    file_date:              "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+
+  tasks:
+
+  - name: ---| {{ playbook_description }}
+    block:
+
+    - name: ---|| {{ installed_message }}
+      block:
+
+      - name: Install ansible roles in local ansible controller
+        command: ansible-galaxy install --roles-path ../roles -r ../roles/requirements.yml
+
