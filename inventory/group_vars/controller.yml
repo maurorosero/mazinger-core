@@ -1,0 +1,31 @@
+---
+
+k3s_repo: 'https://get.k3s.io'
+awx_version: '0.13.0'
+
+package_list:
+  - name: git
+  - name: openssh-server
+  - name: mutt
+  - name: langpacks-en
+  - name: glibc-all-langpacks
+  - name: setroubleshoot-server
+  - name: curl
+  - name: lsof
+  - name: wget
+  - name: firewalld
+
+pip_package: python3-pip
+pip_executable: pip3
+pip_install_packages:
+  # Specify names and versions.
+  - name: pymongo
+  - name: pandas
+
+
+
+
+
+
+
+

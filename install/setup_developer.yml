@@ -188,21 +188,21 @@
 
       - name: Check if developer ssh private key file exists
         stat:
-          path: "{{ sysop_ssh_prvpath }}"
+          path: "{{ devel_ssh_prvpath }}"
         register: st_devs_prv_file
         become_user: '{{ input_developer_user }}'
         delegate_to: localhost
 
       - name: Check if developer ssh public key file exists
         stat:
-          path: "{{ sysop_ssh_pubpath }}"
+          path: "{{ devel_ssh_pubpath }}"
         register: st_devs_pub_file
         become_user: '{{ input_developer_user }}'
         delegate_to: localhost
 
       - name: Create new developer ssh key if not exists
         openssh_keypair:
-          path: "{{ sysop_ssh_prvpath }}"
+          path: "{{ devel_ssh_prvpath }}"
           comment: '{{ input_developer_email }}'
           size: '{{ ssh_key_size }}'
           type: '{{ ssh_key_type }}'

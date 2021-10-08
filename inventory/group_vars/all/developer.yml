@@ -1,0 +1,24 @@
+---
+#inventory/group_vars/all/developer.yml
+#
+
+# Apps Info
+apps_name: "MAZINGER-D (CORE)"
+apps_desc: "Mazinger Devops - Plataforma de Despliegue de Infraestructura Automatizado"
+apps_date: "20/07/2020"
+apps_updt: "10/08/2021"
+apps_revs: ·0.98·
+
+# Developer Owner
+developer_user:   "mrosero"
+developer_fname:  "Mauro"
+developer_lname:  "Rosero P."
+developer_name:   "{{ developer_fname }} {{ developer_lname }}"
+developer_cmail:  "{{ developer_user }}@{{ developer_domain }}"
+developer_pmail:  "mrosero@gmail.com"
+developer_code:   "OPENTECH"
+developer_cname:  "OPEN TECHNOLOGY SOLUTIONS"
+developer_github: https://github.com/maurorosero/mazinger-core
+developer_lics:   https://github.com/maurorosero/mazinger-core/blob/core/LICENSE
+developer_domain: libretechnology.com
+developer_devops: "soporte@{{ developer_domain }}"

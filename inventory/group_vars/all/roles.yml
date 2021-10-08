@@ -1,0 +1,5 @@
+---
+#inventory/group_vars/all/roles.yml
+
+roles_reqpath: '../roles/requirements.yml'
+roles_anspath: '/etc/ansible/roles'

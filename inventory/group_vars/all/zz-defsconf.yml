@@ -1,0 +1,83 @@
+---
+#inventory/group_vars/all/zz-defsconf.yml
+
+# Devops Default Path Configuration
+data_path:         "{{ lookup('env','DATAPATH')|default(dataops_path, true) }}"
+inv_path:          "{{ lookup('env','INVPATH')|default(inventory_path, true) }}"
+datakey_path:      '{{ data_path }}/ssh'
+playbook_status:   '/var/{{ sysop_userid }}'
+
+# Ansible Controller Parameters
+controller_type:   "{{ lookup('env','CONTROLLER')|default('master', true) }}"
+mattermost_active: "{{ lookup('env','AWX_MATTERMOST')|default('0', true) }}"
+
+# Default sshkeys Parameters
+bootstrap:       'no'
+ssh_forced:      no
+ssh_key_type:    rsa
+ssh_key_size:    4096
+
+# Miscelaneous Default Configurations
+ansible_today:   "{{ lookup('pipe','date +%Y-%m-%d-%H:%M:%S') }}"
+
+# Default Sysop User Definition
+sysop_userid:   'sysop'
+sysop_name:     'Admin User|{{ devops_name }}|{{ devops_mail }}'
+sysop_uid:      9110
+
+# Dafault Sysop Group Definition
+sysop_group:    'devops'
+sysop_gid:      '{{ sysop_uid }}'
+sysop_groups:   '{{ sysop_group }}, {{ secur_group }}'
+
+# Default Secure User Definition
+secur_userid:   'vault'
+secur_name:     'Secure User|{{ secure_name }}|{{ secure_mail }}'
+secur_uid:      9111
+
+# Default Secure Group Definition
+secur_group:    'secure'
+secur_gid:      '{{ secur_uid }}'
+
+# Git User Definition
+git_userid:     'git'
+git_name:       'User for git server'
+git_uid:        9112
+
+# Git Group Definition
+git_group:      '{{ git_userid }}'
+git_gid:        '{{ git_uid }}'
+
+# Secure sysop settings
+home_dir:            "{{ lookup('env','HOME') }}"
+sysop_ssh_base:      "/{{ sysop_userid}}/keys/"
+sysop_ssh_path:      "{{ home_dir }}/.ssh"
+sysop_ssh_prvfile:   "{{ sysop_userid}}_id_rsa"
+sysop_ssh_pubfile:   "{{ sysop_ssh_prvfile }}.pub"
+sysop_ssh_prv:       "{{ sysop_ssh_base}}{{ sysop_ssh_prvfile }}"
+sysop_ssh_pub:       "{{ sysop_ssh_base}}{{ sysop_ssh_pubfile }}"
+sysop_ssh_prvpath:   "{{ sysop_ssh_path }}/{{ sysop_ssh_prvfile }}"
+sysop_ssh_pubpath:   "{{ sysop_ssh_path }}/{{ sysop_ssh_pubfile }}"
+devel_ssh_prvfile:   "id_rsa"
+devel_ssh_pubfile:   "{{ devel_ssh_prvfile }}.pub"
+devel_ssh_prvpath:   "{{ sysop_ssh_path }}/{{ devel_ssh_prvfile }}"
+devel_ssh_pubpath:   "{{ sysop_ssh_path }}/{{ devel_ssh_pubfile }}"
+
+# Mazinger Global Settings
+awx_user:            "admin"
+mazinger_config:     'mzcore.ini'
+mazinger_lang:       'es'
+mazinger_dbname:     mazingerdb
+mazinger_base:       "/mazinger/"
+mazinger_dbase:      "{{ mazinger_base }}/mongodb/"
+mazinger_db_pass:    "{{ mazinger_dbase }}password"
+mazinger_store:      "{{ mazinger_base }}/storedb/"
+mazinger_sto_user:   "{{ mazinger_store }}user"
+mazinger_sto_pass:   "{{ mazinger_store }}password"
+developer_create:    "{{ devops_binpath }}/developer_create.py"
+
+# Cloudflare Global Settings
+cloudflare_base:     "{{ mazinger_base}}cloudflare/"
+cloudflare_kv_key:   "key"
+cloudflare_kv_token: "token"
+cloudflare_kv_email: "email"

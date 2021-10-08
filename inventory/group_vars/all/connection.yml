@@ -1,0 +1,6 @@
+---
+#inventory/group_vars/all/connection.yml
+
+# Connections system paramaters
+sysop_timeout_connection: 15
+

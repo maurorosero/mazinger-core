@@ -1,0 +1,36 @@
+---
+
+package_list:
+  - name: telegram-cli
+  - name: mongocli
+  - name: gh
+  - name: git
+  - name: cifs-utils
+  - name: openssh-server
+  - name: mutt
+  - name: iftop
+  - name: ssh-askpass
+  - name: pylint
+  - name: etcd-client
+  - name: sshpass
+
+pip_package: python3-pip
+pip_executable: pip3
+pip_install_packages:
+  # Specify names and versions.
+  - name: pymongo
+  - name: awxkit
+  - name: pyinstaller
+  - name: pyinstaller[encryption]
+  - name: cryptography
+  - name: etcd3
+  - name: pandas
+  - name: hcloud
+
+
+
+
+
+
+
+

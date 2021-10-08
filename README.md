@@ -75,7 +75,8 @@ $ bin/setup_stations.sh
 
 ### AWX CONTROLLER SERVER
 
-Ahora vamos a configurar los parametros básicos de la plataforma y la empresa, para lo que debe llenar los datos que le serán solicitados.
+Al ejecutar el siguiente script, nos va a solicitar los parametros básicos de la plataforma y la empresa. Este proceso debe ser ejecutado antes de hacer cualquier otra cosa; ya que el mismo configura los archivos necesarios que servirán de insumo a las demás tareas.
+
 ```bash
 $ bin/setup_configs.sh
 ```
