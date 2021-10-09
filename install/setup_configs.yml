@@ -49,7 +49,7 @@
     cifs_mountpath:      '{{ ansible_env.HOME }}/media'
     file_date:           "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
 
-    notify_mail_install: '{{ notify_path}}/mazinger_install.html'
+    notify_mail_config:  '{{ notify_path}}/mazinger_config.html'
 
     exim4_sendonly_email_addresses:
       root: '{{ input_owner_mail }}'
@@ -184,5 +184,5 @@
           to: '{{ to_email_notify }}'
           subtype: html
           subject: 'Instalación - {{ apps_name }}'
-          body: "{{ lookup('template', notify_mail_install) }}"
+          body: "{{ lookup('template', notify_mail_config) }}"
 
