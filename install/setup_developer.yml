@@ -39,6 +39,8 @@
     file_date:              "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
     gitconf_file:           '~/.gitconfig'
 
+    notify_devops_user:     '{{ notify_path}}/update_users.html'
+
   vars_prompt:
 
     - name: input_developer_user
@@ -229,6 +231,17 @@
         when: not st_devs_prv_file.stat.exists or not st_devs_pub_file.stat.exists
         become_user: '{{ input_developer_user }}'
         delegate_to: localhost
+
+      - name: Notify about developer user created or updated
+        community.general.mail:
+          sender: 'Notificaciones {{ apps_name}} <no-reply@{{ devops_domain }}>'
+          to: '{{ input_developer_email }}'
+          subtype: html
+          subject: 'Adición/Modificación de Usuario DevOPS - {{ apps_name }}'
+          body: "{{ lookup('template', notify_devops_user) }}"
+        delegate_to: localhost
+        become_user: '{{ input_developer_user }}'
+   
 
 
 

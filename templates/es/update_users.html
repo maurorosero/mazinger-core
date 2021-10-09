@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 6.4.7.2 (Linux)"/>
+	<meta name="created" content="2021-08-13T18:56:45.211982390"/>
+	<meta name="changed" content="2021-08-13T19:44:33.158494490"/>
+</head>
+<body lang="es-PA" dir="ltr"><p align="center" style="margin-bottom: 0cm">
+<p align="center" style="margin-bottom: 0cm"><br/>
+{% include 'logo.html' %}
+</p>
+<br/>
+<p style="margin-bottom: 0cm"><font size="3" style="font-size: 12pt">Estimado,<br/>
+{{ input_developer_fname }} {{ input_developer_lname }}<br/>
+<b>{{ input_developer_email }}</b>
+</font></p>
+<p style="margin-bottom: 0cm; line-height: 0.56cm"><font size="3" style="font-size: 12pt">Se le ha remitido está notificación porque usted es un nuevo o existente usuario desarrollador (devops) de nuestra solución de infraestructura {{ apps_desc }} Vers. {{ apps_revs }} Updt. {{ apps_updt }}
+({{ apps_name }}) para {{ devops_company }} ({{ devops_customer }}); por lo cual le informamos que se ha iniciado el proceso de registro y configuración como soporte de desarrollo.</font></p>
+
+{% if user_count is defined and user_count == '0' %}
+<p style="margin-bottom: 0cm; line-height: 0.56cm"><font size="3" style="font-size: 12pt">Nuestro sistema de registro reporta que eres un nuevo usuario o has cambiado tu contraseña por lo cual se te ha generado una contraseña nueva: <b>>{{ awx_user_pass }}</b>. Por favor, cambiala apenas recibas este correo o borra el correo y guardala en un lugar seguro</font></p>
+{% endif %}
+
+<p style="margin-bottom: 0cm; line-height: 0.56cm"><font size="3" style="font-size: 12pt">El proyecto se encuentra hospedado en GITHUB como proyecto público y bajo licencia <a href="{{ developer_lics }}">GNU GPL v3.</a> Para poder tener más
+información del mismo puede visitar su repositorio en <a href="{{ developer_github }}">{{ developer_github }}</a>.   Si usted tiene alguna pregunta
+o comentario no dude en contactarnos.</font></p>
+<br/>
+<p><font size="3" style="font-size: 12pt">Te damos la bienvenida a nuestro equipo de DevOps,<br/><br/>
+<b>{{ owner_name }}</b><br/>
+{{ devops_company }}</font></p>
+</body>
+</html>
