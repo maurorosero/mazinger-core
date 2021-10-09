@@ -106,13 +106,30 @@
         become_user: root
 
         ### AWX USER CONFIGURATION ###
-      
+    
       - name: Set new developer password
         set_fact:
           awx_user_pass: "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=32') }}"
         when: awx_adminpass is defined and awx_adminpass.rc == 0
 
-      - name: Add Developer User on AWX
+      - name: Find developer user {{ input_developer_user }} on awx controller
+        raw: "awx --conf.host http://{{ ansible_host }}:{{ awx_webport.stdout_lines[0] }} --conf.username {{ awx_user }} --conf.password {{ awx_adminpass.stdout_lines[0] }} users list --username {{ input_developer_user }}"
+        register: user_find
+        delegate_to: localhost
+        become_user: '{{ input_developer_user }}'
+        when: awx_adminpass is defined and awx_adminpass.rc == 0
+
+      - name: Get finder result on json
+        set_fact:
+          user_json:  '{{ user_find.stdout | from_json }}'
+        when: user_find is defined
+
+      - name: Get user find count on awx controler
+        set_fact:
+          user_count: '{{ user_json.count | int }}'
+        when: user_json is defined
+
+      - name: Create Developer User on AWX
         awx.awx.user:
           controller_username: '{{ awx_user }}'
           controller_password: '{{ awx_adminpass.stdout_lines[0] }}'
@@ -123,11 +140,11 @@
           first_name: '{{ input_developer_fname }}'
           last_name: '{{ input_developer_lname }}'
           state: present
-        when: awx_adminpass is defined and awx_adminpass.rc == 0 and not change_me is defined
+        when: awx_adminpass is defined and awx_adminpass.rc == 0 and user_count is defined and user_count | int < 1
         become_user: '{{ input_developer_user }}'
         delegate_to: localhost
 
-      - name: Change Developer User on AWX
+      - name: Modify Developer User on AWX
         awx.awx.user:
           controller_username: '{{ awx_user }}'
           controller_password: '{{ awx_adminpass.stdout_lines[0] }}'
@@ -137,7 +154,7 @@
           first_name: '{{ input_developer_fname }}'
           last_name: '{{ input_developer_lname }}'
           state: present
-        when: awx_adminpass is defined and awx_adminpass.rc == 0 and (change_me is defined and change_me)
+        when: awx_adminpass is defined and awx_adminpass.rc == 0 and user_count is defined and user_count | int > 0
         become_user: '{{ input_developer_user }}'
         delegate_to: localhost
 
