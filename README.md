@@ -42,7 +42,7 @@ Nota: Para una mayor eficiencia y disponibilidad del servicio, nosotros adquirim
 
 ## INSTALACIÓN
 
-### DEVELOPER STATION
+#### CONFIGURANDO PRE-REQUISITOS
 Primero debe descargarse el proyecto desde nuestro repositorio en [GITHUB: maurorosero/mazinger-core](https://github.com/maurorosero/mazinger-core). Desde una sesión de consola (preferiblemente ambiente linux) en la computadora que vamos a usar como el **DEVELOPER STATION**, haciendo lo siguiente:
 
 ```bash
@@ -72,11 +72,8 @@ Una vez completado el paso anterior, debemos instalar las aplicaciones y libreri
 ```bash
 $ bin/setup_stations.sh
 ```
-
-### AWX CONTROLLER SERVER
-
+#### INSTALANDO AWX CONTROLLER
 Al ejecutar el siguiente script, nos va a solicitar los parametros básicos de la plataforma y la empresa. Este proceso debe ser ejecutado antes de hacer cualquier otra cosa; ya que el mismo configura los archivos necesarios que servirán de insumo a las demás tareas.
-
 ```bash
 $ bin/setup_configs.sh
 ```
@@ -84,4 +81,17 @@ Ahora vamos a instalar nuestro servidor de orquestación y controlador principal
 ```bash
 $ bin/setup_awx.sh
 ```
+#### USUARIO DEVOPS (DESARROLLO)
+Ya, en este punto, necesitamos definir las credenciales del usuario desarrollador o de soporte (**usuario devops**) de la plataforma. Se creará el usuario en el **CONTROLADOR AWX**, en la **estación de desarrollo** si no existen se registrará las credenciales git y se generarán las llaves SSH.
+
+Ejecute los siguientes comandos en la estación de desarrollo desde la sesión o cuenta del usuario que se configurará como desarrolador o usuario devops:
+```
+$ bin/setup_developer.sh
+```
+#### CONFIGURANDO LA PLATAFORMA
+Cuando ejecutamos el siguiente proceso, cargamos la configuración de la empresa y el proyecto (MAZINGER-D CORE) al CONTROLADOR AWX. El proyecto se desacarga desde la platofrm:
+```
+$ 
+```
+
 
