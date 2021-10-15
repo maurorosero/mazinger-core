@@ -5,7 +5,7 @@ Este proyecto tiene la intención de desarrollar una plataforma automatizada de 
 
 ## INFRAESTRUCTURA
 
-Para el Core de la plataforma de despliegue utilizaremos Ansible y Ansible AWX, por lo que necesitaremos instalar, previamente, algunos servidores de soporte o servicios a la plataforma:
+Para el Core de la plataforma de despliegue utilizaremos Ansible y Ansible AWX, por lo que necesitaremos instalar algunos servidores o servicios de soporte a la plataforma:
 
 ![image](images/mazinger-components.png)
 
@@ -74,8 +74,8 @@ Ejecute los siguientes comandos en la estación de desarrollo desde la sesión o
 ```
 $ bin/setup_developer.sh
 ```
-#### CONFIGURANDO LA PLATAFORMA
-Cuando ejecutamos el siguiente proceso, cargamos la configuración de la empresa y el proyecto (MAZINGER-D CORE) al CONTROLADOR AWX. El proyecto se desacarga desde la platofrm:
+#### INSTALANDO EL GIT CONTROLLER (GITLAB)
+El **AWX CONTROLLER** requiere de un repositorio de proyectos git para gestionar los cambios de proyectos y funcionalidades ansible. Debemos instalarlo haciendo los siguientes pasos en la misma sesión de consola:
 ```
 $ 
 ```

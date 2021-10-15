@@ -22,7 +22,7 @@
     playbook_description:   'Add/Update Platform Developer User'
     managed_sufix:          'ansible'
     managed_file:           '{{ playbook_status }}/{{ managed_sufix }}'
-    sysop_action:           'MZCORE USER'
+    sysop_action:           'MZCORE DEVOPS'
     installed_message:      'Configure Developer User'
     notify_subject:         '[{{ sysop_action }} ({{ ansible_hostname | upper }}] {{ installed_message }}'
     notify_path:            "../templates/{{ mazinger_lang }}"
@@ -39,7 +39,7 @@
     file_date:              "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
     gitconf_file:           '~/.gitconfig'
 
-    notify_devops_user:     '{{ notify_path}}/update_users.html'
+    notify_devops_user:     '{{ notify_path}}/update_devops.html'
 
   vars_prompt:
 

@@ -42,6 +42,8 @@
     developer_template:  "devops.tmpl"
     defaults_template:   'configs.tmpl'
     defaults_config:     'configs.ini'
+    gitlab_template:     'gitlab.tmpl'
+    gitlab_config:       'gitlab.yml'
 
     mazinger_create:     "{{ devops_binpath }}/db_create.py"
     mazinger_groups:     "{{ devops_binpath }}/db_groups.py"
@@ -106,6 +108,16 @@
       default: "{{ lookup('ini', 'def_timezone section=config file=../defaults/configs.ini') | default('America/Panama') }}"
       private: no
 
+    - name: input_ctx01_server
+      prompt:  Get Primary Ansible Controller (AWX)
+      default: "{{ lookup('ini', 'def_ctx01_server section=config file=../defaults/configs.ini') | default('None') }}"
+      private: no
+
+    - name: input_gitlab_server
+      prompt:  Get Gitlab Host (without domain)
+      default: "{{ lookup('ini', 'def_gitlab_server section=config file=../defaults/configs.ini') | default('devs') }}"
+      private: no
+
     - name: input_etcd0_server
       prompt:  Get KVaaS Controller Server DNS
       default: "{{ lookup('ini', 'def_etcd0_server section=config file=../defaults/configs.ini') | default('None') }}"
@@ -126,10 +138,6 @@
       default: "{{ lookup('ini', 'def_store_server section=config file=../defaults/configs.ini') | default('None') }}"
       private: no
 
-    - name: input_ctx01_server
-      prompt:  Get Primary Ansible Controller (AWX)
-      default: "{{ lookup('ini', 'def_ctx01_server section=config file=../defaults/configs.ini') | default('None') }}"
-      private: no
 
   tasks:
 
@@ -149,6 +157,12 @@
         template:
           src: "{{ template_path }}/{{ master_template }}"
           dest: "{{ inventory_all_path }}/{{ master_config }}"
+          mode: u=rw,g=r,o=r
+
+      - name: Build Config Devops Inventory File {{ gitlab_config }}
+        template:
+          src: "{{ template_path }}/{{ gitlab_template }}"
+          dest: "{{ inventory_all_path }}/{{ gitlab_config }}"
           mode: u=rw,g=r,o=r
 
       - name: Build KVaaS Inventory File {{ kvaas_config }}

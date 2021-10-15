@@ -9,8 +9,10 @@ def_servers_path={{ input_servers_path | default('/srv/data/devops-data', true) 
 def_install_path={{ input_install_path | default('../../devops-data', true) }}
 def_python_server={{ input_python_server | default('/usr/bin/python3',true) }}
 def_timezone={{ input_timezone | default('America/Panama', true) }}
+def_ctx01_server={{ input_ctx01_server | default('None', true) }}
+def_gitlab_server={{ input_gitlab_server | default('devs', true) }}
 def_etcd0_server={{ input_etcd0_server | default('None', true) }}
 def_kvport={{ input_etcd0_kvport | default(2379, true) }}
 def_db_server={{ input_db_server | default('None', true) }}
 def_store_server={{ input_store_server | default('None', true) }}
-def_ctx01_server={{ input_ctx01_server | default('None', true) }}
+

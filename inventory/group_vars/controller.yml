@@ -14,6 +14,16 @@ package_list:
   - name: lsof
   - name: wget
   - name: firewalld
+  - name: python3-gitlab
+  - name: telegram-cli
+  - name: mongocli
+  - name: cifs-utils
+  - name: openssh-server
+  - name: mutt
+  - name: iftop
+  - name: ssh-askpass
+  - name: pylint
+  - name: sshpass
 
 pip_package: python3-pip
 pip_executable: pip3
@@ -21,6 +31,7 @@ pip_install_packages:
   # Specify names and versions.
   - name: pymongo
   - name: pandas
+  - name: pyapi-gitlab
 
 
 

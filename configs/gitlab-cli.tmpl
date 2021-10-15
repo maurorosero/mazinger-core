@@ -1,0 +1,9 @@
+[global]
+default = {{ ansible_hostname }}
+ssl_verify = true
+timeout = 5
+
+[{{ ansible_hostname}}]
+url = {{ gitlab_external_url }}
+api_version = 4
+private_token = {{ mazinger_token }}

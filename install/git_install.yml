@@ -1,0 +1,296 @@
+---
+# Playbook:     git_install.yml
+# Description:  Setup/Install Git Controller
+# Author:       Mauro Rosero P.
+# Email:        mrosero@libretechnology.com (mauro.rosero@gmail.com)
+# Organization: OPEN TECHNOLOGY SOLUTIONS, S. A.
+
+# Date: 10-02-2020
+# Note: Run from some computers with ansible installed.
+# Require update ansible roles from roles/requirements.txt
+# '''' if you run in awx controller, you need set env var DATAPATH on Settings / Works with the path of data.
+# '''' if you run in awx controller, for scheduled automatic provisioned sysop procees, require define go_rebuild
+# '''' with value equal to 'yes' - rebuild setup to manage
+
+- name: --| {{ playbook_program }} - {{ playbook_description }}
+  hosts: gitlab
+  become: yes
+  ignore_unreachable: yes 
+  gather_facts: yes
+
+  vars:
+    playbook_program:       'git_install'
+    playbook_description:   'Setup/Install Git Controller'
+    managed_sufix:          'gitlab'
+    managed_file:           '{{ playbook_status }}/{{ managed_sufix }}'
+    sysop_action:           'GIT CONTROLLER SETUP'
+    installed_message:      'Gitlab Controller Configuration'
+    notify_subject:         '[{{ sysop_action }} ({{ ansible_hostname | upper }}] {{ installed_message }}'
+    notify_path:            "../templates/{{ mazinger_lang }}"
+    ansible_month:          "{{ lookup('pipe','date +%Y%m') }}"
+
+    local_user:             "{{ lookup('env', USER)}}"
+    data_path:              "{{ lookup('env','DATAPATH')| default(data_station_path, true) }}"
+    inventory_all_path:     "../inventory/group_vars/all"
+    inventory_path:         "../inventory/"
+    template_path:          "../defaults"
+    configs_path:           "../configs"
+    devops_binpath:         "../bin"
+    file_date:              "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+    gitlab_datetime:        "{{ lookup('pipe','date +%Y%m%d %H:%M:%S') }}"
+    gitlab_config_path:     "/etc/gitlab"
+    first_time_passwd:      "{{ gitlab_config_path }}/initial_root_password"
+    gitlab_config_template: "{{ template_path }}/mzgitlab.rb.j2"
+    notify_gitlab_install:  '{{ notify_path}}/mazinger_git.html'
+    gitlab_cli_template:    "{{ configs_path }}/gitlab-cli.tmpl"
+    gitlab_cli_file:        "/tmp/gitlab-cli.cfg"
+   
+  tasks:
+
+  - name: ---| {{ playbook_description }}
+    block:
+
+    - name: Waiting for Gitlab Servers connection 
+      wait_for_connection:
+        timeout: '{{ sysop_timeout_connection | int }}'
+
+    - name: ---|| {{ installed_message }}
+      block:
+
+        ### SERVER SETUP ###
+
+      - name: Create sysop managed folder status
+        file:
+          path: '{{ playbook_status }}'
+          state: directory
+          owner: root
+          group: root
+          mode: 0770
+
+      - name: Set Timezone server ({{ devops_timezone }})
+        timezone:
+          name: '{{ devops_timezone }}'
+
+      - name: Set a hostname to {{ ansible_host }}
+        ansible.builtin.hostname:
+          name: '{{ ansible_host }}'
+
+        ### FIREWALLD RULES SETUP ###
+
+      - name: Enable service firewalld and ensure it is not masked
+        systemd:
+          name: firewalld
+          enabled: yes
+          masked: no
+
+      - name: Make sure a service is running
+        systemd: 
+          name: firewalld
+          state: started 
+
+      - name: FirewallD rules
+        firewalld:
+          permanent: yes
+          immediate: yes
+          service: "{{ item }}"
+          state: enabled
+        with_items:
+          - http
+          - https
+
+      - name: Reload service firewalld
+        systemd:
+          name: firewalld
+          state: reloaded
+
+      - name: Install Git Server
+        include_role:
+          name: geerlingguy.gitlab
+
+        ### GET FIRST TIME PASSWORD ###
+     
+      - name: Check if gittlab config exists
+        stat:
+          path: "{{ first_time_passwd }}"
+        register: st_firstpwd
+    
+      - name: Get first time password
+        shell: "cat {{ first_time_passwd }} | grep 'Password: ' | cut -d' ' -f2"
+        register: gitlab_pass
+        when: st_firstpwd.stat.exists
+
+        ### GENERATE SYSOP SSH KEY ###
+
+      - name: Check if local {{ sysop_ssh_path }} directory exists
+        stat:
+          path: "{{ sysop_ssh_path }}"
+        register: ssh_user_home
+        become: no
+        delegate_to: localhost
+
+      - name: Create {{ sysop_ssh_path }} if dont exists
+        file:
+          path: "{{ sysop_ssh_path }}"
+          state: directory
+          mode: '0700'
+        when: not ssh_user_home.stat.exists
+        become: no
+        delegate_to: localhost
+
+      - name: Check if sysop ssh private key file exists
+        stat:
+          path: "{{ sysop_ssh_prvpath }}"
+        register: st_devs_prv_file
+        become: no
+        delegate_to: localhost
+
+      - name: Check if sysop ssh public key file exists
+        stat:
+          path: "{{ sysop_ssh_pubpath }}"
+        register: st_devs_pub_file
+        become: no
+        delegate_to: localhost
+
+      - name: Create sysop ssh pair keys if not exists
+        openssh_keypair:
+          path: "{{ sysop_ssh_prvpath }}"
+          comment: '{{ devops_mail_group }}'
+          size: '{{ ssh_key_size }}'
+          type: '{{ ssh_key_type }}'
+          force: '{{ ssh_forced }}'
+        register: st_devs_new
+        when: not st_devs_prv_file.stat.exists or not st_devs_pub_file.stat.exists
+        become: no
+        delegate_to: localhost
+
+        ### UPDATE BASE GITLAB INFORMATION ###
+
+      - name: Calculate gitlab sysop token due
+        command: |
+          date +'%Y-%m-%d %H:%M:%S' -d "{{ ansible_date_time.iso8601 }} + 2 days"
+        register: token_due_date
+
+      - name: Revoke Gitlab Sysop Installation Token
+        shell: |
+          gitlab-rails runner "token = PersonalAccessToken.find_by_token('{{ mazinger_token }}'); token.revoke!; token.delete"
+        register: gitlab_delete_tkn
+        ignore_errors: true
+        no_log: true
+  
+      - name: Create Gitlab Sysop Installation Token
+        shell: |
+          gitlab-rails runner "token = User.find_by_username('{{ gitlab_sysop }}').personal_access_tokens.create(scopes: [:api], name: 'Install Token', expires_at: '{{ token_due_date.stdout }}'); token.set_token('{{ mazinger_token }}'); token.save!"
+        register: gitlab_first_tkn
+
+      - name: Re-check if sysop ssh public key file exists
+        stat:
+          path: "{{ sysop_ssh_pubpath }}"
+        register: st_devs_pub_file
+        become: no
+        delegate_to: localhost
+
+      - name: Create/Modify Devops GitLab Group
+        community.general.gitlab_group:
+          api_url: '{{ gitlab_external_url }}'
+          api_token: '{{ mazinger_token }}'
+          name: 'DEVOPS {{ sysop_customer | upper }}'
+          path: '{{ sysop_group }}'
+          description: '{{ mazinger_devops}} {{ sysop_customer | upper }}'
+          state: present
+        delegate_to: localhost
+        become: no
+
+      - name: Delete extra example sysop email
+        shell: |
+          gitlab -c {{ gitlab_cli_file }} -o json user-email delete --user-id 1 --id 1
+        register: st_gitlab_email
+        delegate_to: localhost
+        become: no
+        ignore_errors: true
+        no_log: true
+
+      - name: Create/Modify Admin Sysop GitLab User
+        community.general.gitlab_user:
+          api_url: '{{ gitlab_external_url }}'
+          api_token: '{{ mazinger_token }}'
+          name: '{{ sysop_userid | lower }} ({{ sysop_customer | lower }})'
+          username: '{{ gitlab_sysop | lower }}'
+          isadmin: true
+          email: '{{ devops_mail_group }}'
+          confirm: no
+          sshkey_name: '{{ sysop_userid | upper }} {{ sysop_customer | upper }} KEY'
+          sshkey_file: "{{ lookup('file', sysop_ssh_pubpath) }}"
+          state: present
+        delegate_to: localhost
+        become: no
+
+      - name: Update Admin Sysop Gitlab Profile
+        shell: |
+          gitlab -c {{ gitlab_cli_file }} -o json user update --id 1 \
+            --name '{{ sysop_userid | lower }} ({{ sysop_customer | lower }})' \
+            --email {{ devops_mail_group }} \
+            --username {{ gitlab_sysop | lower }} \
+            --organization {{ sysop_customer | upper }} \
+            --private-profile true \
+            --location {{ devops_timezone }}
+        register: st_gitlab_profile
+        delegate_to: localhost
+        become: no
+
+      - name: Upload Sysop Avatar (Black Mazinger 128x128)
+        shell: |
+          curl --location --request PUT "{{ gitlab_external_url }}/api/v4/users/1" \
+          --header "PRIVATE-TOKEN: {{ mazinger_token }}" \
+          --form "avatar=@{{ image_sysop_file }}"
+        register: st_sysop_avatar
+        delegate_to: localhost
+        become: no
+
+      - name: Build gitlab-cli configuration file
+        template:
+          src: "{{ gitlab_cli_template }}"
+          dest: "{{ gitlab_cli_file }}"
+          mode: u=rw,g=r,o=r
+        delegate_to: localhost
+        become: no
+
+      - name: Change to Mazinger Plataform Name
+        shell: |
+          gitlab -c {{ gitlab_cli_file }} -o json application-appearance update \
+            --title "{{ apps_ref3 }}" \
+            --description "<b>{{ apps_ref1}} {{ apps_ref2 }}  Ver. {{ apps_revs}} Actualización {{ apps_updt }}</b><br/>"
+        register: st_gitlab_data
+        delegate_to: localhost
+        become: no
+
+      - name: Upload Mazinger Favicon (Black Mazinger 32x32)
+        shell: |
+          curl --location --request PUT "{{ gitlab_external_url }}/api/v4/application/appearance?data=image/png" \
+          --header "Content-Type: multipart/form-data" \
+          --header "PRIVATE-TOKEN: {{ mazinger_token }}" \
+          --form "favicon=@{{ image_icon_file }}"
+        register: st_logo_icon
+        delegate_to: localhost
+        become: no
+
+      - name: Upload Mazinger Banner (Logo Image)
+        shell: |
+          curl --location --request PUT "{{ gitlab_external_url }}/api/v4/application/appearance?data=image/png" \
+          --header "Content-Type: multipart/form-data" \
+          --header "PRIVATE-TOKEN: {{ mazinger_token }}" \
+          --form "logo=@{{ image_banner_file }}"
+        register: st_logo_icon
+        delegate_to: localhost
+        become: no
+
+        ### EMAIL NOTIFICATION ###
+
+      - name: Notify by email about gitlab server installation process completed
+        community.general.mail:
+          sender: 'Notificaciones {{ apps_name}} <no-reply@{{ devops_domain }}>'
+          to: '"Grupo DevOps" <{{ devops_mail_group }}>'
+          subtype: html
+          subject: 'Instalación de Controlador Gitlab - {{ apps_name }}'
+          body: "{{ lookup('template', notify_gitlab_install) }}"
+        delegate_to: localhost
+        become: no

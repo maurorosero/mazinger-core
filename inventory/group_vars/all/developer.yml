@@ -3,11 +3,21 @@
 #
 
 # Apps Info
-apps_name: "MAZINGER-D (CORE)"
-apps_desc: "Mazinger Devops - Plataforma de Despliegue de Infraestructura Automatizado"
+apps_ref1: "Mazinger Devops"
+apps_ref2: "Core"
+apps_ref3: "Plataforma Devops para Despliegue Automatizado de Infraestructura"
+apps_full: "{{ apps_ref1 }} {{ apps_ref2 }}"
+apps_name: "{{ apps_ref2 | upper }} ({{ apps_ref2 | upper }})"
+apps_desc: "{{ apps_ref1 }} - {{ apps_ref3 }} "
 apps_date: "20/07/2020"
 apps_updt: "10/08/2021"
-apps_revs: ·0.98·
+apps_revs: ·"0.98b" ·
+
+# Logo Images
+apps_images_path:       '../images'
+image_banner_file:      '{{ apps_images_path }}/mazinger-banner.png'
+image_icon_file:        '{{ apps_images_path }}/mazinger-black-32x32.png'
+image_sysop_file:       '{{ apps_images_path }}/mazinger-black-128x128.png'
 
 # Developer Owner
 developer_user:   "mrosero"

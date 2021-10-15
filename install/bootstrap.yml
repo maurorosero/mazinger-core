@@ -1,0 +1,41 @@
+---
+# Playbook:     bootstrap.yml
+# Description:  Prepare server to ansible (bootstrap)
+# Author:       Mauro Rosero P,
+# Email:        mrosero@libretechnology.com (mauro.rosero@gmail.com)
+# Organization: OPEN TECHNOLOGY SOLUTIONS, S. A.
+# Date: 10-02-2020
+
+- name: --| {{ playbook_program }} - {{ playbook_description }}
+  hosts: all
+  become: yes
+  ignore_unreachable: yes
+  gather_facts: no
+
+  vars:
+    playbook_program:       'bootstrap'
+    playbook_description:   'Prepare server to ansible (bootstrap)'
+
+  vars_prompt:
+
+    - name: input_os_family
+      prompt: Get os family (redhat, debian)
+      default: "redhat"
+      private: no
+
+  tasks:
+
+  - name: ---| {{ playbook_description }}
+    block:
+
+    - name: ---|| {{ installed_message }}
+      block:
+
+      - name: install python on Debian Family
+        raw: test -e /usr/bin/python3 || ( apt update && apt install python3 -y )
+        when: input_os_family == "debian"
+
+      - name: install python on Redhat Family
+        raw: test -e /usr/bin/python3 || ( yum update && yum install python3 -y )
+        when: input_os_family == "redhat"
+

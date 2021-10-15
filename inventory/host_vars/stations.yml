@@ -13,6 +13,7 @@ package_list:
   - name: pylint
   - name: etcd-client
   - name: sshpass
+  - name: python3-gitlab
 
 pip_package: python3-pip
 pip_executable: pip3
@@ -26,6 +27,7 @@ pip_install_packages:
   - name: etcd3
   - name: pandas
   - name: hcloud
+  - name: pyapi-gitlab
 
 
 

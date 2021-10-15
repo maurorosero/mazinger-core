@@ -7,22 +7,19 @@
 [all]
 localhost     ansible_connection=local
 awx           ansible_host={{ input_ctx01_server }}
+git           ansible_host={{ input_gitlab_server }}.{{ input_companydomain }}
 install       ansible_connection=local
 stations      ansible_connection=local
 etcd0         ansible_host={{ input_etcd0_server }}
 
-[etcd]
-etcd0
-
-[etcd_cluster]
-etcd0
+[gitlab]
+git
 
 [controller]
 awx
 
-[roles]
-stations
-awx
+[kvaas]
+etcd0
 
 
 

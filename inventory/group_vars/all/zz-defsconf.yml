@@ -22,6 +22,9 @@ ansible_today:   "{{ lookup('pipe','date +%Y-%m-%d-%H:%M:%S') }}"
 
 # Default Sysop User Definition
 sysop_userid:   'sysop'
+sysop_fname:    'Admin'
+sysop_lname:    'Sysop User'
+sysop_refer:    '{{ sysop_fname }} {{ sysop_lname }}'
 sysop_name:     'Admin User|{{ devops_name }}|{{ devops_mail }}'
 sysop_uid:      9110
 
@@ -67,6 +70,8 @@ devel_ssh_pubpath:   "{{ sysop_ssh_path }}/{{ devel_ssh_pubfile }}"
 awx_user:            "admin"
 mazinger_config:     'mzcore.ini'
 mazinger_lang:       'es'
+mazinger_devops:     'Devops Developers & Manteiners for '
+mazinger_token:      'install-6409-02tkn'
 mazinger_dbname:     mazingerdb
 mazinger_base:       "/mazinger/"
 mazinger_dbase:      "{{ mazinger_base }}/mongodb/"

@@ -19,6 +19,7 @@
 - src: grog.sudo
 - src: grog.user
 - src: juju4.gpgkey_generate
+- src: mrlesmithjr.ansible_bootstrap_python
 - src: oefenweb.locales
 - src: robertdebock.alternatives
 - src: robertdebock.anaconda
@@ -39,6 +40,7 @@
 - src: amtega.gitlab_cli
 - src: geerlingguy.docker
 - src: geerlingguy.git
+- src: geerlingguy.gitlab
 - src: geerlingguy.packer
 - src: geerlingguy.packer-debian
 - src: geerlingguy.packer_rhel

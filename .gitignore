@@ -2,6 +2,7 @@ tmp/*
 defaults/*
 !defaults/awx-instance-deployment.yml
 !defaults/public-static-pvc.yml
+!defaults/mzgitlab.rb.j2
 inventory/host_vars/*
 !inventory/host_vars/stations.yml
 inventory/group_vars/all/aa-defsconf.yml

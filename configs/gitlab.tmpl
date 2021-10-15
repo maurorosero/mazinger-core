@@ -1,0 +1,23 @@
+---
+#inventory/group_vars/all/gitlab.yml
+# Devops Default Base Data Configuration (Main Git Server)
+# Generated {{ ansible_today }}
+
+# Main Git Server Configuration (Gitlab)
+gitlab_default_theme:       4
+gitlab_sysop:               'root'
+gitlab_letsencrypt_enable:  true
+gitlab_redirect_http_to_https: true
+gitlab_create_self_signed_cert: false
+gitlab_time_zone:           {{ input_timezone }}
+gitlab_email_enabled:       true
+gitlab_email_from:          "{{ input_devops_mail }}"
+gitlab_email_display_name:  "Gitlab Devops"
+gitlab_email_reply_to:      "{{ input_devops_mail }}"
+
+### GitLab user privileges
+gitlab_create_group:        true
+gitlab_change_username:     true
+
+gitlab_letsencrypt_contact_emails: 
+  - "{{ input_devops_mail }}"

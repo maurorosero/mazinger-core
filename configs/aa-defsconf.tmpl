@@ -20,8 +20,16 @@ data_servers_path:          '{{ input_servers_path }}'
 data_station_path:          '{{ input_install_path }}'
 data_homeuser:              '/home'
 
-# Miscelaneous Default Configurations
+# Miscelaneous Default Configuration
 ansible_python_interpreter: {{ input_python_server }}
+
+# Mazinger Ansible Controller Server (AWX)
+awx_server:                 {{ input_ctx01_server }}
+
+# Mazinger Git Controller Server (GITLAB)
+gitlab_main_host:           {{ input_gitlab_server }}
+git_server:                 {{ input_gitlab_server }}.{{ input_companydomain }}
+gitlab_external_url:        https://{{ input_gitlab_server }}.{{ input_companydomain }}
 
 # Mazinger KVaaS Controller Server
 kvaas_server:               {{ input_etcd0_server }}

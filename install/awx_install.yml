@@ -38,6 +38,7 @@
        
     awx_pvc_file:           "public-static-pvc.yml"
     awx_deploy_file:        "awx-instance-deployment.yml"
+    notify_devops_user:     '{{ notify_path}}/mazinger_awx.html'
 
 
   tasks:
@@ -59,7 +60,7 @@
       - name: Install required python modules
         include_role:
           name: geerlingguy.pip
-public-static-pvc.yml
+
       - name: Create sysop managed folder status
         file:
           path: '{{ playbook_status }}'
@@ -194,5 +195,13 @@ public-static-pvc.yml
         register: awx_adminpass
         when: awx_running.stdout_lines is defined and  awx_running.stdout_lines[0] == "Running"
 
-
+      - name: Notify by email about awx controller installation process completed
+        community.general.mail:
+          sender: 'Notificaciones {{ apps_name}} <no-reply@{{ devops_domain }}>'
+          to: '"Grupo DevOps" <{{ devops_mail_group }}>'
+          subtype: html
+          subject: 'Instalación de Controlador Ansible AWX - {{ apps_name }}'
+          body: "{{ lookup('template', notify_awx_install) }}"
+        delegate_to: localhost
+        when: awx_running.stdout_lines is defined and  awx_running.stdout_lines[0] == "Running"
 

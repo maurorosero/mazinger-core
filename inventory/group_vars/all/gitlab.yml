@@ -1,0 +1,23 @@
+---
+#inventory/group_vars/all/gitlab.yml
+# Devops Default Base Data Configuration (Main Git Server)
+# Generated 2021-10-14-11:37:20
+
+# Main Git Server Configuration (Gitlab)
+gitlab_default_theme:       4
+gitlab_sysop:               'root'
+gitlab_letsencrypt_enable:  true
+gitlab_redirect_http_to_https: true
+gitlab_create_self_signed_cert: false
+gitlab_time_zone:           America/Panama
+gitlab_email_enabled:       true
+gitlab_email_from:          "soporte@opentech-solutions.com"
+gitlab_email_display_name:  "Gitlab Devops"
+gitlab_email_reply_to:      "soporte@opentech-solutions.com"
+
+### GitLab user privileges
+gitlab_create_group:        true
+gitlab_change_username:     true
+
+gitlab_letsencrypt_contact_emails: 
+  - "soporte@opentech-solutions.com"
