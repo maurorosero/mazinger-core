@@ -6,4 +6,5 @@ defaults/*
 inventory/host_vars/*
 !inventory/host_vars/stations.yml
 inventory/group_vars/all/aa-defsconf.yml
+inventory/*.ini
 !inventory/base.ini
