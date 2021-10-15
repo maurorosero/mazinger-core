@@ -83,6 +83,7 @@
         with_items:
           - http
           - https
+          - git
 
       - name: Reload service firewalld
         systemd:
@@ -269,7 +270,32 @@
         delegate_to: localhost
         become: no
 
-        ### INSTALLATION LOGGING ###
+        ### LOAD MAZINGER PROJECT ###
+
+      - name: Create {{ apps_ref1 }} Project in DEVOPS {{ sysop_customer | upper }}
+        community.general.gitlab_project:
+          api_url: '{{ gitlab_external_url }}'
+          api_token: '{{ mazinger_token }}'
+          validate_certs: True
+          name: '{{ apps_full }}'
+          description: '{{ apps_desc }}'
+          path:  '{{ apps_code }}'
+          group: '{{ sysop_group }}'
+          wiki_enabled: false
+          state: present
+        delegate_to: localhost
+        become: no
+
+      - name: Upload Mazinger Project Avatar (Black Mazinger)
+        shell: |
+          curl --location --request PUT "{{ gitlab_external_url }}/api/v4/projects/2" \
+          --header "PRIVATE-TOKEN: {{ mazinger_token }}" \
+          --form "avatar=@{{ image_project_file }}"
+        register: st_project_avatar
+        delegate_to: localhost
+        become: no
+
+        ### INSTALLATION LOGGER ###
 
       - name: Set completed task file
         block:

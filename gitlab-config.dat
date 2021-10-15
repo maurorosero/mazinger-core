@@ -1,9 +1,0 @@
-[global]
-default = somewhere
-ssl_verify = true
-timeout = 5
-
-[somewhere]
-url = https://devs.opentech-solutions.com
-api_version = 4
-private_token = install-6409-02tkn

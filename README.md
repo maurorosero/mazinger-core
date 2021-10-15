@@ -1,30 +1,30 @@
 # ![image](images/mazinger-black-24x24.jpg) MAZINGER CORE (mazinger-core)
-**PLATAFORMA DEVOPS PARA DESPLIEGUE AUTOMATIZADO DE INFRAESTRUCTURA**
+###PLATAFORMA DEVOPS PARA DESPLIEGUE AUTOMATIZADO DE INFRAESTRUCTURA
 
 Este proyecto tiene la intención de desarrollar una plataforma automatizada de displiegue de servidores y servicios, de fácil uso utilizando herramientas como: Ansible, Ansible AWX, Terraform, Vagrant Docker, Vault, Boundary, entre otras.
+
+![image](images/mazinger-components.png)
 
 ## INFRAESTRUCTURA
 
 Para el Core de la plataforma de despliegue utilizaremos Ansible y Ansible AWX, por lo que necesitaremos instalar algunos servidores o servicios de soporte a la plataforma:
-
-![image](images/mazinger-components.png)
 
 #### DEVELOPER STATION
 Es la computadora de desarrollo (estación o servidor) utilizada por el/los desarrolladores de la plataforma. Requiere que el usuario tenga la capacidad de escalar sus privilegios a nivel de superusuario.  Se requiere que al momento de lanzar el proceso de instalación inicial, el usuario se encuentre registrado con su usuario de desarrollo; el mismo será utilizado para configurar las credenciales como desarrollador/propietario de la plataforma o proyecto.
 
 Nota: A la fecha (Ago 12, 2021), solo soportamos como estación de desarrollo Debian 10, Ubuntu 20 o Linux Mint.
 
+#### GIT CONTROLLER SERVER
+##### GITLAB CI/CD
+Aunque la integración con **GITHUB** nos hubiera ahorrado el despliegue de uno o más servidores para este servicio, preferimos la instalación de un servidor que ofrezca las prestaciones de repositorio de proyectos, control de versiones y de despliegue/integración continua.  Por sus prestaciones de servicio, **GITLAB**, no solo nos sirve de repositorio para la gestión de proyectos; si no que se convierte en uno de los componentes principales de **MAZINGER DEVOPS**.
+
+##### GITHUB SERVICES
+Para esta integración se debiera contratar una cuenta comercial del servicio para cubrir la mayoría de las prestaciones de integración con **MAZINGER DEVOPS**. No obstante, en esta etapa inicial no contaremos con integración hacia **GITHUB** como nuestro **GIT CONTROLLER SERVER**.
+
 #### AWX CONTROLLER SERVER
 Este es un servidor basado en la versión libre de [RED HAT ANSIBLE AUTOMATION PLATFORM](https://www.ansible.com/products/automation-platform) conocida como [ANSIBLE AWX](https://github.com/ansible/awx) que eleva la automatización en toda su organización, ampliando sus posibilidades. Es una base más segura y flexible para construir e implementar la automatización que ayuda a su negocio a acelerar, orquestar e innovar.  
 
 **AWX** proporciona una interfaz de usuario basada en web, una API REST y un motor de tareas construido sobre Ansible. Es uno de los proyectos iniciales de Red Hat Ansible Automation Platform. Para ambiente de producción (minimo), se requiere una maquina física o virtual con 4 cores/vcores, 8GB RAM y 100GB de almacenamiento.
-
-#### GIT CONTROLLER SERVER
-##### GITLAB CI/CD
-Aunque la integración con **GITHUB** nos hubiera ahorrado el despliegue de uno o más servidores para este servicio, preferimos la instalación de un servidor que ofrezca las prestaciones de repositorio de proyectos, control de versiones y de despliegue/integración continua.
-
-##### GITHUB SERVICES
-Para esta integración se debiera contratar una cuenta comercial del servicio para cubrir la mayoría de las prestaciones de integración con **MAZINGER-D**. No obstante, en esta etapa inicial no contaremos con integración hacia **GITHUB** como nuestro **GIT CONTROLLER SERVER**.
 
 ## INSTALACIÓN
 
@@ -58,30 +58,56 @@ Una vez completado el paso anterior, debemos instalar las aplicaciones y libreri
 ```bash
 $ bin/setup_stations.sh
 ```
-#### INSTALANDO AWX CONTROLLER
-Al ejecutar el siguiente script, nos va a solicitar los parametros básicos de la plataforma y la empresa. Este proceso debe ser ejecutado antes de hacer cualquier otra cosa; ya que el mismo configura los archivos necesarios que servirán de insumo a las demás tareas.
+Este proceso debe ser ejecutado antes de hacer cualquier otra cosa; ya que el mismo configura las variables necesarios que servirán de insumo a las demás tareas. Previo, se deben configurar los parametros generales y los archivos de inventario, ejecutando:
 ```bash
 $ bin/setup_configs.sh
 ```
-Ahora vamos a instalar nuestro servidor de orquestación y controlador principal, que nos proveerá un interface gráfico y centralizdo para la gestión de nuestros procesos de autoatización, haciendo lo siguiente:
-```bash
-$ bin/setup_awx.sh
-```
 #### INSTALANDO EL GIT CONTROLLER (GITLAB)
-El **AWX CONTROLLER** requiere de un repositorio de proyectos git para gestionar los cambios de proyectos y funcionalidades ansible. Debemos instalarlo haciendo los siguientes pasos en la misma sesión de consola:
+El **AWX CONTROLLER** requiere de un repositorio de proyectos git para gestionar los cambios de proyectos y funcionalidades ansible. Debemos instalar el servidor git (GITLAB) ejecutando el siguiente script:
 ```
 $ bin/setup_gitlab.sh
 ```
-#### CONFIGURANDO PROYECTO INCIAL Y PLATAFORMA
-Ambos, **GIT CONTROLLER** y **AWX CONTROLLER**, son los dos (2) componentes básicos para gestionar nuestra plataforma, aunque existen otros componentes que instalaremos posteriormente. El siguiente paso nos permitirá configurar el proyecto principal y los demás datos de configuración de la plataforma y de la empresa:
+Ahora vamos a cambiar la configuración del repositorio del proyecto y configurarlo para que sea el GITLAB SERVER sea el repositorio principal (debe cambiar **company** y **devops@mycompany.com** por los definidos en su configuración:
 ```bash
-$ bin/setup_mzcore.sh
+$ git config --local user.name "sysop ([company])"
+$ git config --local user.email "[devops@mycompany.com]"
+$ git remote -v
 ```
-Nota: Asegurese que ambos servidores estén instalados y funcionando adecuadamente antes de ejecutar esta tarea.
-#### USUARIO DEVOPS (DESARROLLO)
-Ya, en este punto, necesitamos definir las credenciales del usuario desarrollador o de soporte (**usuario devops**) de la plataforma. Se creará el usuario en el **CONTROLADOR AWX**, en la **estación de desarrollo** si no existen se registrará las credenciales git y se generarán las llaves SSH.
-
-Ejecute los siguientes comandos en la estación de desarrollo desde la sesión o cuenta del usuario que se configurará como desarrolador o usuario devops:
+Esto nos mostrará la lista de los repositorios configurados, a este punto solo deberíamos tener configurado el **origin** apuntando al repositorio original de github, para removerlo hacemos lo siguiente:
+```bash
+$ git remote remove origin
+```
+A este punto no deberíamos tener ningun repositorio configurado, para confirmarlo ejecutamos nuevamente:
+```bash
+$ git remote -v
+```
+Si todo va bien, debería aparecenerno el resultado en blanco. Ahora vamos a configurar el nuevo repositorio (reemplazar git-server-url por la url del git server en su configuración):
+```bash
+$ git remote add origin git@[git-server-url]:devops/mazinger-core.git
+```
+A este punto debemos poder hacer el push inical al proyecto, ejecutando:
+```bash
+$ push --set-upstream origin core
+```
+Si todo está debidamente instalado y configurado a este punto debe tener el proyecto base cargado en el GITLAB SERVER. Solo se cargará el proyecto base, ya que el archivo **.gitignore** impide que se carguen las configuraciones generadas: por lo cual deberemos borrar o mover el archivo **.gitignore** a otra carpeta como sigue:
+```bash
+$ mv .gitignore defaults/gitignore.cnf
+```
+Volvemos a actualizar nuestro proyecto al repositorio en el gitlab server.  Esta vez, incorporará las configuraciones generadas.
+```bash 
+$ git add .
+$ git commit -m "[CORE]New mazinger company installation"
+$ git push
+```
+#### CONFIGURANDO EL PERFIL DE USUARIO DEVOPS
+Antes de empezar a trabajar debemos crear las credenciales como usuario devops de la plataforma. Este proceso usará la configuración de usuario de la sesión qu esta conectada en la **DEVELOPER STATION**.  Si este no es el usuario que se definirá como **USUARIO DEVOPS**, terminé la sesión y registrese como el usuario correspondiente.
 ```
 $ bin/setup_developer.sh
+```
+#### CARGANDO EL PROYECTO MAZINGER DEVOPS AL GIT SERVER
+
+#### INSTALANDO AWX CONTROLLER
+Ahora vamos a instalar nuestro servidor de orquestación y controlador principal, que nos proveerá un interface gráfico y centralizdo para la gestión de nuestros procesos de autoatización, haciendo lo siguiente:
+```bash
+$ bin/setup_awx.sh
 ```
