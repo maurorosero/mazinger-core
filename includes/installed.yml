@@ -1,0 +1,25 @@
+---
+
+      - name: Ensure group "{{ sysop_group }}" exists with correct gid
+        ansible.builtin.group:
+          name: '{{ sysop_group }}'
+          state: present
+          system: true
+          gid: '{{ sysop_gid }}'
+        
+      - name: Create sysop managed folder status
+        file:
+          path: '{{ playbook_status }}'
+          state: directory
+          owner: root
+          group: root
+          mode: 0770
+
+      - name: Record completed task file tag
+        template:
+          src: "{{ configs_path }}/completed.tmpl"
+          dest: "{{ managed_file }}"
+          owner: root
+          group: '{{ sysop_group }}'
+          mode: 0640
+

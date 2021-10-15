@@ -73,10 +73,11 @@ El **AWX CONTROLLER** requiere de un repositorio de proyectos git para gestionar
 $ bin/setup_gitlab.sh
 ```
 #### CONFIGURANDO PROYECTO INCIAL Y PLATAFORMA
-Ambos, **GIT CONTROLLER** y **AWX CONTROLLER**, son los dos (2) componentes básicos para gestionar nuestra plataforma: por lo que en este punto configuraremos el proyecto principal y los demás datos de configuración de la plataforma y de la empresa.
+Ambos, **GIT CONTROLLER** y **AWX CONTROLLER**, son los dos (2) componentes básicos para gestionar nuestra plataforma, aunque existen otros componentes que instalaremos posteriormente. El siguiente paso nos permitirá configurar el proyecto principal y los demás datos de configuración de la plataforma y de la empresa:
 ```bash
 $ bin/setup_mzcore.sh
 ```
+Nota: Asegurese que ambos servidores estén instalados y funcionando adecuadamente antes de ejecutar esta tarea.
 #### USUARIO DEVOPS (DESARROLLO)
 Ya, en este punto, necesitamos definir las credenciales del usuario desarrollador o de soporte (**usuario devops**) de la plataforma. Se creará el usuario en el **CONTROLADOR AWX**, en la **estación de desarrollo** si no existen se registrará las credenciales git y se generarán las llaves SSH.
 

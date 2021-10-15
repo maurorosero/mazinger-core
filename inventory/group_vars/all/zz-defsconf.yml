@@ -6,6 +6,12 @@ data_path:         "{{ lookup('env','DATAPATH')|default(dataops_path, true) }}"
 inv_path:          "{{ lookup('env','INVPATH')|default(inventory_path, true) }}"
 datakey_path:      '{{ data_path }}/ssh'
 playbook_status:   '/var/{{ sysop_userid }}'
+inventory_all_path: "../inventory/group_vars/all"
+inventory_path:    "../inventory/"
+template_path:     "../defaults"
+configs_path:      "../configs"
+devops_binpath:    "../bin"
+notify_path:            "../templates/{{ mazinger_lang }}"
 
 # Ansible Controller Parameters
 controller_type:   "{{ lookup('env','CONTROLLER')|default('master', true) }}"
@@ -65,6 +71,7 @@ devel_ssh_prvfile:   "id_rsa"
 devel_ssh_pubfile:   "{{ devel_ssh_prvfile }}.pub"
 devel_ssh_prvpath:   "{{ sysop_ssh_path }}/{{ devel_ssh_prvfile }}"
 devel_ssh_pubpath:   "{{ sysop_ssh_path }}/{{ devel_ssh_pubfile }}"
+task_completed:      ../includes/installed.yml
 
 # Mazinger Global Settings
 awx_user:            "admin"

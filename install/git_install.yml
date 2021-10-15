@@ -24,19 +24,13 @@
     managed_sufix:          'gitlab'
     managed_file:           '{{ playbook_status }}/{{ managed_sufix }}'
     sysop_action:           'GIT CONTROLLER SETUP'
-    installed_message:      'Gitlab Controller Configuration'
+    installed_message:      'Gitlab Controller ha sido instalado!'
     notify_subject:         '[{{ sysop_action }} ({{ ansible_hostname | upper }}] {{ installed_message }}'
-    notify_path:            "../templates/{{ mazinger_lang }}"
     ansible_month:          "{{ lookup('pipe','date +%Y%m') }}"
 
     local_user:             "{{ lookup('env', USER)}}"
-    data_path:              "{{ lookup('env','DATAPATH')| default(data_station_path, true) }}"
-    inventory_all_path:     "../inventory/group_vars/all"
-    inventory_path:         "../inventory/"
-    template_path:          "../defaults"
-    configs_path:           "../configs"
-    devops_binpath:         "../bin"
     file_date:              "{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+
     gitlab_datetime:        "{{ lookup('pipe','date +%Y%m%d %H:%M:%S') }}"
     gitlab_config_path:     "/etc/gitlab"
     first_time_passwd:      "{{ gitlab_config_path }}/initial_root_password"
@@ -50,7 +44,7 @@
   - name: ---| {{ playbook_description }}
     block:
 
-    - name: Waiting for Gitlab Servers connection 
+    - name: Waiting for server connection 
       wait_for_connection:
         timeout: '{{ sysop_timeout_connection | int }}'
 
@@ -58,14 +52,6 @@
       block:
 
         ### SERVER SETUP ###
-
-      - name: Create sysop managed folder status
-        file:
-          path: '{{ playbook_status }}'
-          state: directory
-          owner: root
-          group: root
-          mode: 0770
 
       - name: Set Timezone server ({{ devops_timezone }})
         timezone:
@@ -283,6 +269,13 @@
         delegate_to: localhost
         become: no
 
+        ### INSTALLATION LOGGING ###
+
+      - name: Set completed task file
+        block:
+        - include_tasks: '{{ task_completed }}'
+        become: true
+        
         ### EMAIL NOTIFICATION ###
 
       - name: Notify by email about gitlab server installation process completed
@@ -294,3 +287,5 @@
           body: "{{ lookup('template', notify_gitlab_install) }}"
         delegate_to: localhost
         become: no
+
+    when: true

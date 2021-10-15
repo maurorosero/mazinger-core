@@ -11,7 +11,8 @@ apps_name: "{{ apps_ref2 | upper }} ({{ apps_ref2 | upper }})"
 apps_desc: "{{ apps_ref1 }} - {{ apps_ref3 }} "
 apps_date: "20/07/2020"
 apps_updt: "10/08/2021"
-apps_revs: ·"0.98b" ·
+apps_revs: "0.0.98b"
+apps_type: "ansible-playbook"
 
 # Logo Images
 apps_images_path:       '../images'

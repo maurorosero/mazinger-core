@@ -1,0 +1,29 @@
+[platform]
+project = Mazinger
+component = {{ apps_ref2 }}
+version = {{ apps_revs }}
+last_update = {{ apps_updt }}
+company_code = {{ devops_customer }}
+company_name = '{{ devops_company }}'
+
+[customer]
+{% if not customer_code is defined %}
+code = {{ sysop_customer }}
+{% else %}
+code = {{ customer_code }}
+{% endif %}
+{% if not customer_name is defined %}
+name = {{ devops_company }}
+{% else %}
+name = {{ customer_name }}
+{% endif %}
+
+[installation]
+type = {{ apps_type }}
+task = {{ playbook_program }}
+description = {{ playbook_description }}
+python = {{ ansible_python_interpreter }}
+timezone = {{ devops_timezone }}
+user = {{ ansible_user }}
+date = {{ ansible_today }}
+
